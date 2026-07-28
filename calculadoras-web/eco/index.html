@@ -90,6 +90,30 @@
     width:100%;background:linear-gradient(90deg,rgba(56,189,248,.10),rgba(56,189,248,.03));border:1px solid rgba(56,189,248,.30);border-left:3px solid var(--cy);color:var(--txt);
     border-radius:11px;padding:11px 12px;font-size:1.02rem;outline:none;-webkit-appearance:none;appearance:none;
   }
+  /* 🔲 CASILLAS: el appearance:none de arriba les borra el palomito → se restauran aquí (y grandes, para el dedo) */
+  input[type=checkbox]{
+    -webkit-appearance:auto;appearance:auto;
+    width:24px;min-width:24px;height:24px;flex:0 0 auto;
+    padding:0;margin:0;border:0;border-radius:4px;background:none;
+    accent-color:var(--cy);cursor:pointer;
+  }
+  label.chk{display:flex;gap:9px;align-items:center;font-weight:400;cursor:pointer;padding:6px 2px;min-height:44px}
+  .fld label.chk::before{content:none}
+  /* 🧭 Barra de navegación por escenario clínico */
+  .qnav{position:sticky;top:0;z-index:60;margin:0 0 14px;padding:10px 12px;border-radius:14px;
+    background:rgba(9,16,30,.94);backdrop-filter:blur(10px);border:1px solid rgba(56,189,248,.28);box-shadow:0 8px 26px rgba(0,0,0,.45)}
+  .qn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .qn-row+.qn-row{margin-top:9px}
+  .qnav input[type=search]{flex:1;min-width:180px;width:auto;padding:10px 12px;font-size:.95rem}
+  .qn-chip{background:rgba(255,255,255,.06);border:1px solid rgba(56,189,248,.28);color:var(--txt);
+    border-radius:999px;padding:9px 14px;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;min-height:40px;transition:.15s}
+  .qn-chip:hover{border-color:var(--cy)}
+  .qn-chip.on{background:linear-gradient(120deg,var(--cy),#a78bfa);color:#06101f;border-color:transparent}
+  .qn-info{color:var(--dim);font-size:.78rem;margin-left:auto;white-space:nowrap}
+  .qn-hide{display:none !important}
+  .wrap.qn-ord{display:flex;flex-direction:column}
+  .wrap.qn-ord .qnav{order:-999}
+  @media print{.qnav{display:none}}
   input::placeholder{color:#5f7690}
   input:focus,select:focus{border-color:var(--cy);box-shadow:0 0 0 3px rgba(56,189,248,.22)}
   .fld label::before{content:"✎ ";color:var(--cy);font-weight:800}
@@ -175,6 +199,16 @@
     <span class="lg-out">⚡ Violeta — <b>cálculo automático</b></span>
   </div>
 </header>
+
+<!-- ===================== NAVEGACIÓN POR ESCENARIO ===================== -->
+<div class="qnav" id="qnav">
+  <div class="qn-row">
+    <input id="qn_search" type="search" placeholder="🔎 Buscar módulo… (tapon, fluido, diastólica, VD…)" oninput="QN.search(this.value)" autocomplete="off">
+    <button class="qn-chip qn-all on" id="qn_all" onclick="QN.all()">Ver todo</button>
+    <span class="qn-info" id="qn_info"></span>
+  </div>
+  <div class="qn-row" id="qn_scn"></div>
+</div>
 
 <!-- ===================== PACIENTE ===================== -->
 <div class="card">
@@ -292,7 +326,7 @@
     <div class="res"><div class="lab">Gasto cardíaco (GC) <small>VS × FC · normal 4–8 L/min</small></div><div class="val"><span class="num" id="o_co">—</span><span class="badge b-mut" id="b_co">—</span></div></div>
     <div class="res"><div class="lab">Índice cardíaco (IC) <small>GC / BSA · normal 2,5–4</small></div><div class="val"><span class="num" id="o_ci">—</span><span class="badge b-mut" id="b_ci">—</span></div></div>
     <div class="res"><div class="lab">RVS · resistencia sistémica <small>80×(PAM−PAD)/GC · normal 800–1200</small></div><div class="val"><span class="num" id="o_svr">—</span><span class="badge b-mut" id="b_svr">—</span></div></div>
-    <div class="res"><div class="lab">RVP · resistencia pulmonar (eco, Abbas) <small>(VTR/VTIrvot)×10 + 0,16 · normal &lt;2 UW</small></div><div class="val"><span class="num" id="o_pvr">—</span><span class="badge b-mut" id="b_pvr">—</span></div></div>
+    <div class="res"><div class="lab">RVP · resistencia pulmonar (eco, Abbas) <small>(VTR/VTIrvot)×10 + 0,16 · normal ≤2 UW · válida hasta ~6</small></div><div class="val"><span class="num" id="o_pvr">—</span><span class="badge b-mut" id="b_pvr">—</span></div></div>
   </div>
 </div>
 
@@ -348,17 +382,17 @@
   </div>
   <div class="fld" style="grid-column:1/-1;margin-top:8px"><label>Condiciones de validez <span class="u">— marca las que se cumplen (solo el 2–7% de los pacientes de UCI las cumple TODAS)</span></label>
     <div style="display:flex;gap:14px;flex-wrap:wrap;padding:6px 2px">
-      <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="vp_pasivo" style="width:auto" onchange="calc()"> VM controlada · paciente pasivo</label>
-      <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="vp_vt" style="width:auto" onchange="calc()"> Vt ≥8 mL/kg peso predicho</label>
-      <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="vp_sinusal" style="width:auto" onchange="calc()"> Ritmo sinusal (sin FA)</label>
-      <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="vp_torax" style="width:auto" onchange="calc()"> Tórax cerrado</label>
-      <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="vp_vd" style="width:auto" onchange="calc()"> Sin falla del VD ni hipertensión intraabdominal</label>
-      <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="vp_compl" style="width:auto" onchange="calc()"> Compliance respiratoria &gt;30 mL/cmH₂O</label>
-      <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="vp_fcfr" style="width:auto" onchange="calc()"> FC/FR &gt;3,6</label>
-      <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="vp_valv" style="width:auto" onchange="calc()"> Sin valvulopatía significativa (sobre todo IAo severa)</label>
-      <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="vp_soporte" style="width:auto" onchange="calc()"> Sin BCIA / ECMO / asistencia ventricular</label>
-      <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="vp_senal" style="width:auto" onchange="calc()"> Señal arterial adecuada (sin sobre/subamortiguación)</label>
-      <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="vp_prono" style="width:auto" onchange="calc()"> No está en decúbito prono</label>
+      <label class="chk"><input type="checkbox" id="vp_pasivo" style="width:auto" onchange="calc()"> VM controlada · paciente pasivo</label>
+      <label class="chk"><input type="checkbox" id="vp_vt" style="width:auto" onchange="calc()"> Vt ≥8 mL/kg peso predicho</label>
+      <label class="chk"><input type="checkbox" id="vp_sinusal" style="width:auto" onchange="calc()"> Ritmo sinusal (sin FA)</label>
+      <label class="chk"><input type="checkbox" id="vp_torax" style="width:auto" onchange="calc()"> Tórax cerrado</label>
+      <label class="chk"><input type="checkbox" id="vp_vd" style="width:auto" onchange="calc()"> Sin falla del VD ni hipertensión intraabdominal</label>
+      <label class="chk"><input type="checkbox" id="vp_compl" style="width:auto" onchange="calc()"> Compliance respiratoria &gt;30 mL/cmH₂O</label>
+      <label class="chk"><input type="checkbox" id="vp_fcfr" style="width:auto" onchange="calc()"> FC/FR &gt;3,6</label>
+      <label class="chk"><input type="checkbox" id="vp_valv" style="width:auto" onchange="calc()"> Sin valvulopatía significativa (sobre todo IAo severa)</label>
+      <label class="chk"><input type="checkbox" id="vp_soporte" style="width:auto" onchange="calc()"> Sin BCIA / ECMO / asistencia ventricular</label>
+      <label class="chk"><input type="checkbox" id="vp_senal" style="width:auto" onchange="calc()"> Señal arterial adecuada (sin sobre/subamortiguación)</label>
+      <label class="chk"><input type="checkbox" id="vp_prono" style="width:auto" onchange="calc()"> No está en decúbito prono</label>
     </div>
   </div>
   <div class="out">
@@ -463,7 +497,7 @@
     <div class="res"><div class="lab">TAPSE <small>(de «Presiones pulmonares») · normal ≥17 mm</small></div><div class="val"><span class="num" id="o_tapse2">—</span><span class="badge b-mut" id="b_tapse2">—</span></div></div>
     <div class="res"><div class="lab">Diámetro basal del VD <small>normal ≤41 mm</small></div><div class="val"><span class="num" id="o_rvd">—</span><span class="badge b-mut" id="b_rvd">—</span></div></div>
     <div class="res"><div class="lab">Relación VD/VI <small>normal &lt;0,6 · &gt;1 sobrecarga aguda (TEP)</small></div><div class="val"><span class="num" id="o_rvlv">—</span><span class="badge b-mut" id="b_rvlv">—</span></div></div>
-    <div class="res"><div class="lab">Vol. AD indexado · RAVi <small>Vol/BSA · normal ≤34 mL/m²</small></div><div class="val"><span class="num" id="o_ravi">—</span><span class="badge b-mut" id="b_ravi">—</span></div></div>
+    <div class="res"><div class="lab">Vol. AD indexado · RAVi <small>Vol/BSA · normal ≤39 ♂ / ≤33 ♀ (ASE 2015)</small></div><div class="val"><span class="num" id="o_ravi">—</span><span class="badge b-mut" id="b_ravi">—</span></div></div>
     <div class="res"><div class="lab">Área de la AD <small>normal &lt;18 cm²</small></div><div class="val"><span class="num" id="o_raarea">—</span><span class="badge b-mut" id="b_raarea">—</span></div></div>
     <div class="res"><div class="lab">Strain libre del VD <small>normal más negativo que −20%</small></div><div class="val"><span class="num" id="o_rvstr">—</span><span class="badge b-mut" id="b_rvstr">—</span></div></div>
     <div class="res" style="border-left-color:var(--pk)"><div class="lab">Función sistólica del VD <small>integrando TAPSE + S′ + FAC</small></div><div class="val"><span class="gradebig c-mut" id="o_rvfx">—</span></div></div>
@@ -480,8 +514,8 @@
     <div class="fld"><label>Diámetro VI · anteroposterior <span class="u">(mm, eje corto sístole)</span></label><input id="ecc_d2" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     <div class="fld" style="grid-column:1/-1"><label>Hallazgos observados</label>
       <div style="display:flex;gap:16px;flex-wrap:wrap;padding:6px 2px">
-        <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="ck_mcconnell" style="width:auto" onchange="calc()"> Signo de McConnell (pared libre acinética, ápex conservado)</label>
-        <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="ck_septo" style="width:auto" onchange="calc()"> Septo aplanado / movimiento paradójico</label>
+        <label class="chk"><input type="checkbox" id="ck_mcconnell" style="width:auto" onchange="calc()"> Signo de McConnell (pared libre acinética, ápex conservado)</label>
+        <label class="chk"><input type="checkbox" id="ck_septo" style="width:auto" onchange="calc()"> Septo aplanado / movimiento paradójico</label>
       </div></div>
   </div>
   <div class="out">
@@ -505,9 +539,9 @@
     <div class="fld"><label>Onda E tricuspídea · espiración <span class="u">(m/s)</span></label><input id="pe_tri_e" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     <div class="fld" style="grid-column:1/-1"><label>Signos observados</label>
       <div style="display:flex;gap:16px;flex-wrap:wrap;padding:6px 2px">
-        <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="ck_colad" style="width:auto" onchange="calc()"> Colapso sistólico de la AD &gt;⅓ del ciclo</label>
-        <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="ck_colvd" style="width:auto" onchange="calc()"> Colapso diastólico del VD</label>
-        <label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="ck_plet" style="width:auto" onchange="calc()"> Plétora de VCI (&gt;21 mm, colapso &lt;50%)</label>
+        <label class="chk"><input type="checkbox" id="ck_colad" style="width:auto" onchange="calc()"> Colapso sistólico de la AD &gt;⅓ del ciclo</label>
+        <label class="chk"><input type="checkbox" id="ck_colvd" style="width:auto" onchange="calc()"> Colapso diastólico del VD</label>
+        <label class="chk"><input type="checkbox" id="ck_plet" style="width:auto" onchange="calc()"> Plétora de VCI (&gt;21 mm, colapso &lt;50%)</label>
       </div></div>
   </div>
   <div class="out">
@@ -792,7 +826,8 @@ function calc(){
     document.getElementById('o_grad').innerHTML=f(grad,0)+'<small>mmHg</small>';
     document.getElementById('o_psap').innerHTML=f(psap,0)+'<small>mmHg</small>';
     document.getElementById('o_psap').className='num '+(psap<=35?'c-ok':psap<=45?'c-warn':'c-bad');
-    badge('b_psap', psap<=35?'Normal':psap<=45?'Leve ↑':psap<=60?'Moderada ↑':'Severa ↑', psap<=35?'b-ok':psap<=45?'b-warn':'b-bad');
+    /* NO se gradúa la HP por la PSAP (las guías lo desaconsejan): se describe la magnitud y la probabilidad va por la VTR */
+    badge('b_psap', psap<=35?'Normal':psap<=50?'Elevada':'Muy elevada', psap<=35?'b-ok':psap<=50?'b-warn':'b-bad');
     badge('b_hp', vtr>3.4?'Alta':(vtr>=2.9?'Intermedia':(vtr>=2.5?'Baja':'Baja')), vtr>3.4?'b-bad':(vtr>=2.9?'b-warn':'b-ok'));
   } else {
     document.getElementById('o_grad').textContent='—';
@@ -936,9 +971,12 @@ function calc(){
   if(isFinite(co)&&co>0&&isFinite(pam)){ const svr=80*(pam-pad)/co; document.getElementById('o_svr').innerHTML=f(svr,0)+'<small>dyn·s·cm⁻⁵</small>';
     badge('b_svr', svr>=800&&svr<=1200?'Normal':svr<800?'Bajo (vasodilatado)':'Alto (vasoconstricción)', svr>=800&&svr<=1200?'b-ok':'b-warn');
   } else { set('o_svr','—','num'); badge('b_svr','—','b-mut'); }
+  /* ESC/ERS 2022: RVP > 2 UW ya es ANORMAL (antes el corte era 3 → se quitó la zona "límite").
+     Abbas solo está validada hasta ~6 UW: por encima SUBESTIMA y no debe usarse para decidir. */
   if(isFinite(vtr)&&isFinite(rvotVti)&&rvotVti>0){ const pvr=(vtr/rvotVti)*10+0.16; document.getElementById('o_pvr').innerHTML=f(pvr,2)+'<small>UW</small>';
-    document.getElementById('o_pvr').className='num '+(pvr<2?'c-ok':pvr<3?'c-warn':'c-bad');
-    badge('b_pvr', pvr<2?'Normal':pvr<3?'Límite':'Elevada', pvr<2?'b-ok':pvr<3?'b-warn':'b-bad');
+    document.getElementById('o_pvr').className='num '+(pvr<=2?'c-ok':'c-bad');
+    badge('b_pvr', pvr>6?'>6 UW — fuera del rango validado de Abbas (subestima): confirmar con cateterismo'
+                       :(pvr<=2?'Normal (≤2)':'Elevada (>2 · ESC/ERS 2022)'), pvr>6?'b-warn':(pvr<=2?'b-ok':'b-bad'));
   } else { set('o_pvr','—','num'); badge('b_pvr','—','b-mut'); }
 
   /* ---------- EF/VS por Simpson ---------- */
@@ -1045,7 +1083,12 @@ function calc(){
     if(isFinite(tapse2)){ document.getElementById('o_tapse2').innerHTML=f(tapse2,0)+'<small>mm</small>'; document.getElementById('o_tapse2').className='num '+(tapse2>=17?'c-ok':'c-bad'); badge('b_tapse2', tapse2>=17?'Normal':'Reducida', tapse2>=17?'b-ok':'b-bad'); } else { set('o_tapse2','—','num'); badge('b_tapse2','—','b-mut'); }
     if(isFinite(rvd)){ document.getElementById('o_rvd').innerHTML=f(rvd,0)+'<small>mm</small>'; document.getElementById('o_rvd').className='num '+(rvd<=41?'c-ok':'c-bad'); badge('b_rvd', rvd<=41?'Normal':'Dilatado', rvd<=41?'b-ok':'b-bad'); } else { set('o_rvd','—','num'); badge('b_rvd','—','b-mut'); }
     if(isFinite(rvd)&&isFinite(lvbd)&&lvbd>0){ const r=rvd/lvbd; document.getElementById('o_rvlv').textContent=f(r,2); document.getElementById('o_rvlv').className='num '+(r<0.6?'c-ok':r<=1?'c-warn':'c-bad'); badge('b_rvlv', r<0.6?'Normal':r<=1?'Aumentada':'Sobrecarga aguda', r<0.6?'b-ok':r<=1?'b-warn':'b-bad'); } else { set('o_rvlv','—','num'); badge('b_rvlv','—','b-mut'); }
-    if(isFinite(ravol)&&isFinite(bsa)&&bsa>0){ const ravi=ravol/bsa; document.getElementById('o_ravi').innerHTML=f(ravi,0)+'<small>mL/m²</small>'; document.getElementById('o_ravi').className='num '+(ravi<=34?'c-ok':'c-bad'); badge('b_ravi', ravi<=34?'Normal':'Dilatada', ravi<=34?'b-ok':'b-bad'); } else { set('o_ravi','—','num'); badge('b_ravi', isFinite(ravol)?'falta BSA':'—','b-mut'); }
+    /* AD: el corte NO es 34 (ese es el de la AI). ASE 2015 · aurícula DERECHA: ≤39 mL/m² varón · ≤33 mL/m² mujer */
+    if(isFinite(ravol)&&isFinite(bsa)&&bsa>0){ const ravi=ravol/bsa, cutRA=M?39:33; const okRA=ravi<=cutRA;
+      document.getElementById('o_ravi').innerHTML=f(ravi,0)+'<small>mL/m²</small>';
+      document.getElementById('o_ravi').className='num '+(okRA?'c-ok':'c-bad');
+      badge('b_ravi', (okRA?'Normal':'Dilatada')+' (corte ≤'+cutRA+', '+(M?'varón':'mujer')+')', okRA?'b-ok':'b-bad');
+    } else { set('o_ravi','—','num'); badge('b_ravi', isFinite(ravol)?'falta BSA':'—','b-mut'); }
     if(isFinite(raarea)){ document.getElementById('o_raarea').innerHTML=f(raarea,1)+'<small>cm²</small>'; document.getElementById('o_raarea').className='num '+(raarea<18?'c-ok':'c-bad'); badge('b_raarea', raarea<18?'Normal':'Dilatada', raarea<18?'b-ok':'b-bad'); } else { set('o_raarea','—','num'); badge('b_raarea','—','b-mut'); }
     if(isFinite(rvstr)){ document.getElementById('o_rvstr').innerHTML=f(rvstr,1)+'<small>%</small>'; const okS=rvstr<=-20; document.getElementById('o_rvstr').className='num '+(okS?'c-ok':'c-bad'); badge('b_rvstr', okS?'Normal':'Reducido', okS?'b-ok':'b-bad'); } else { set('o_rvstr','—','num'); badge('b_rvstr','—','b-mut'); }
     const abn=[ (isFinite(tapse2)?tapse2<17:null), (isFinite(sPr)?sPr<9.5:null), (isFinite(fac)?fac<35:null) ];
@@ -1710,6 +1753,84 @@ try{ const _rest=Persist.load(); if(_rest){ const b=document.getElementById('bad
     b.innerHTML='<b>💾 Datos restaurados</b> — se recuperaron '+_rest+' valores de tu último estudio (se guardan 12 h). Usa «↺ Limpiar todo» para empezar de cero.';
     setTimeout(function(){ try{ if(!(window._BADFIELDS||[]).length) b.style.display='none'; }catch(e){} }, 9000); } }
 }catch(e){}
+/* ============================================================================
+   🧭 QN — Navegación por ESCENARIO CLÍNICO
+   Con 23 módulos, a pie de cama no se busca "un módulo": se trae una PREGUNTA.
+   Tocas el escenario y quedan solo los módulos que responden esa pregunta, en orden.
+   ========================================================================== */
+const QN = {
+  cards: [], on: null,
+  _n(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); },
+  /* Recorridos validados por intensivista: el ORDEN es el del razonamiento a pie de cama, no el de la página */
+  ESC: [
+    {id:'shock', t:'🚨 Shock', q:'¿Qué tipo de shock es y qué hago en 10 minutos?',
+     k:['paciente','derrame','funcion sistolica','ventriculo derecho','gasto cardiaco','perfil de shock','presiones pulmonares','vpp','respuesta a fluidos','oxigenacion','vexus','corazon visual','sintesis','conclusiones']},
+    {id:'tep', t:'🫁 TEP / VD agudo', q:'¿Hay sobrecarga aguda del VD? ¿aguda o crónica?',
+     k:['paciente','ventriculo derecho','vd agudo','presiones pulmonares','tei','funcion sistolica','gasto cardiaco','oxigenacion','vexus','respuesta a fluidos','corazon visual','sintesis','conclusiones']},
+    {id:'fluido', t:'💧 ¿Le doy volumen?', q:'¿Hay bajo flujo, va a responder y lo va a tolerar?',
+     k:['paciente','gasto cardiaco','vpp','respuesta a fluidos','ventriculo derecho','presiones pulmonares','funcion diastolica','vexus','oxigenacion','corazon visual','sintesis','conclusiones']},
+    {id:'decong', t:'💦 ¿Le quito volumen?', q:'¿Cuánta congestión hay y puedo desresucitar?',
+     k:['paciente','vexus','presiones pulmonares','funcion diastolica','ventriculo derecho','gasto cardiaco','oxigenacion','corazon visual','sintesis','conclusiones']},
+    {id:'disnea', t:'💨 Disnea / IC', q:'¿Las presiones de llenado están altas y por qué?',
+     k:['paciente','funcion sistolica','funcion diastolica','presiones pulmonares','masa','ventriculo derecho','valvula aortica','pisa','gasto cardiaco','dp/dt','vexus','oxigenacion','corazon visual','sintesis','conclusiones']},
+    {id:'tampon', t:'🫧 Taponamiento', q:'¿El derrame compromete el llenado? ¿drenar ya?',
+     k:['paciente','derrame','presiones pulmonares','ventriculo derecho','funcion sistolica','gasto cardiaco','perfil de shock','respuesta a fluidos','vexus','oxigenacion','corazon visual','sintesis','conclusiones']},
+    {id:'weaning', t:'🎈 Destete de VM', q:'¿El fracaso del destete es edema por la prueba?',
+     k:['paciente','funcion diastolica','presiones pulmonares','funcion sistolica','gasto cardiaco','ventriculo derecho','pisa','masa','vexus','oxigenacion','gastrico','corazon visual','sintesis','conclusiones']},
+    {id:'valv', t:'🫀 Valvular', q:'¿Hay valvulopatía que explique el cuadro?',
+     k:['paciente','valvula aortica','pisa','funcion sistolica','gasto cardiaco','presiones pulmonares','ventriculo derecho','dp/dt','corazon visual','sintesis','conclusiones']},
+  ],
+  init(){
+    /* algunos módulos (VExUS, Oxigenación, PISA, Gástrico) viven dentro de un <details>:
+       el bloque a mostrar/ocultar es el <details> y su título está en el <summary> hermano */
+    this.cards = Array.prototype.map.call(document.querySelectorAll('.card'), function(c){
+      const det = (c.parentElement && c.parentElement.tagName === 'DETAILS') ? c.parentElement : null;
+      const h = c.querySelector('h2') || (det ? det.querySelector('summary') : null) || c.querySelector('summary');
+      return { el: det || c, title:(h?h.textContent:'').trim() };
+    });
+    const host=document.getElementById('qn_scn'); if(!host) return;
+    const self=this;
+    host.innerHTML = this.ESC.map(function(e){ return '<button class="qn-chip" id="qn_'+e.id+'" title="'+e.q+'" onclick="QN.scenario(\''+e.id+'\')">'+e.t+'</button>'; }).join('');
+    this._info(this.cards.length, '');
+  },
+  _info(n, extra){ const i=document.getElementById('qn_info'); if(i) i.textContent = n+' de '+this.cards.length+' módulos'+(extra?' · '+extra:''); },
+  _apply(pred, activeId, extra, orderOf){
+    let n=0;
+    this.cards.forEach(function(c){
+      const ok=pred(c);
+      c.el.classList.toggle('qn-hide', !ok);
+      c.el.style.order = (orderOf && ok) ? orderOf(c) : '';
+      if(ok) n++;
+    });
+    const wrap=document.querySelector('.wrap'); if(wrap) wrap.classList.toggle('qn-ord', !!orderOf);
+    document.querySelectorAll('.qn-chip').forEach(function(b){ b.classList.remove('on'); });
+    const b=document.getElementById(activeId); if(b) b.classList.add('on');
+    this._info(n, extra);
+    window.scrollTo({top:0,behavior:'smooth'});
+  },
+  all(){ const s=document.getElementById('qn_search'); if(s) s.value=''; this.on=null;
+    this._apply(function(){return true;}, 'qn_all', ''); },
+  scenario(id){
+    const e=this.ESC.filter(function(x){return x.id===id;})[0]; if(!e) return;
+    if(this.on===id){ this.all(); return; }               // volver a tocarlo = ver todo
+    this.on=id;
+    const s=document.getElementById('qn_search'); if(s) s.value='';
+    const self=this;
+    /* el índice del módulo dentro del recorrido = su ORDEN en pantalla */
+    const idxOf=function(c){ const t=self._n(c.title);
+      for(let i=0;i<e.k.length;i++){ if(t.indexOf(e.k[i])>=0) return i+1; }
+      return 999; };
+    this._apply(function(c){ return idxOf(c)<999; }, 'qn_'+id, e.q, idxOf);
+  },
+  search(q){
+    q=this._n(q).trim();
+    if(!q){ this.all(); return; }
+    this.on=null;
+    const self=this;
+    this._apply(function(c){ return self._n(c.title).indexOf(q)>=0; }, 'qn_none', 'búsqueda: “'+q+'”');
+  }
+};
+try{ QN.init(); }catch(e){}
 calc();
 </script>
 
