@@ -205,6 +205,7 @@
   <div class="qn-row">
     <input id="qn_search" type="search" placeholder="🔎 Buscar módulo… (tapon, fluido, diastólica, VD…)" oninput="QN.search(this.value)" autocomplete="off">
     <button class="qn-chip qn-all on" id="qn_all" onclick="QN.all()">Ver todo</button>
+    <button class="qn-chip" id="qn_acq" title="Ordena los campos por VENTANA ecocardiográfica, en el orden en que exploras al paciente" onclick="ACQ.toggle()">🎬 Por ventana</button>
     <span class="qn-info" id="qn_info"></span>
   </div>
   <div class="qn-row" id="qn_scn"></div>
@@ -1810,7 +1811,9 @@ const QN = {
   },
   all(){ const s=document.getElementById('qn_search'); if(s) s.value=''; this.on=null;
     this._apply(function(){return true;}, 'qn_all', ''); },
+  _exitAcq(){ if(window.ACQ && ACQ.on){ ACQ.restore(); ACQ.on=false; const b=document.getElementById('qn_acq'); if(b) b.classList.remove('on'); } },
   scenario(id){
+    this._exitAcq();
     const e=this.ESC.filter(function(x){return x.id===id;})[0]; if(!e) return;
     if(this.on===id){ this.all(); return; }               // volver a tocarlo = ver todo
     this.on=id;
@@ -1828,6 +1831,97 @@ const QN = {
     this.on=null;
     const self=this;
     this._apply(function(c){ return self._n(c.title).indexOf(q)>=0; }, 'qn_none', 'búsqueda: “'+q+'”');
+  }
+};
+/* ============================================================================
+   🎬 ACQ — MODO ADQUISICIÓN: los campos ordenados por VENTANA, como exploras
+   Se MUEVEN los mismos campos (mismos IDs) a tarjetas por ventana: todo sigue
+   calculando igual. Al salir vuelven a su sitio original.
+   ========================================================================== */
+const ACQ = {
+  on:false, built:false, orig:[],
+  WIN:[
+    {t:'🫀 Apical 4 cámaras', sub:'Diástole → sístole → Doppler mitral → Doppler tricuspídeo → VTI. La ventana donde más se obtiene.',
+     G:[['📥 Congela en DIÁSTOLE (telediástole)', ['rv_eda','edv','rv_d','lv_bd']],
+        ['📤 Congela en SÍSTOLE (telesístole)', ['rv_esa','esv','ra_vol','ra_area','dia_lavi']],
+        ['🔵 Doppler MITRAL y anillo (lado izquierdo)', ['dia_E','dia_A','dia_esep','dia_elat','ee_lat','pe_mit_e','pe_mit_i','dpdt_lv_dt']],
+        ['🔴 Doppler TRICUSPÍDEO y anillo (lado derecho)', ['vtr','rv_s','tapse','ee_tri','rv_strain','pe_tri_i','pe_tri_e','dpdt_rv_dt','mpi_a','mpi_et','mpi_ivct','mpi_ivrt','mpi_et_tdi']],
+        ['🌀 VTI y jets (apical 5 cámaras)', ['lvot_vti','av_vmax','av_vti','av_gmed','fr_vti0','fr_vti1','fr_vmax','fr_vmin']]]},
+    {t:'📏 Paraesternal eje largo', sub:'Tracto de salida y las medidas lineales para masa y función.',
+     G:[['📐 TSVI y modo M / 2D', ['lvot_d','ivsd','lvidd','lvpwd','lvids']]]},
+    {t:'⭕ Paraesternal eje corto', sub:'Geometría septal y cuantificación de regurgitación.',
+     G:[['🔘 Excentricidad del VI (nivel de músculos papilares)', ['ecc_d1','ecc_d2']],
+        ['💧 PISA', ['pisa_r','pisa_va','pisa_vmax','pisa_vti']]]},
+    {t:'🔽 Subcostal', sub:'VCI y congestión venosa, pared del VD, pericardio y la vía pulmonar.',
+     G:[['🌊 VCI y VExUS', ['fr_ivcmax','fr_ivcmin','vx_ivc','vx_hep','vx_por','vx_ren']],
+        ['🫧 Pericardio y pared del VD', ['pe_size','rv_wall']],
+        ['🫁 Vía pulmonar (aquí o en paraesternal corto)', ['rvot_d','rvot_vti','tap']],
+        ['🍽️ Antro gástrico', ['g_ap','g_cc']]]},
+    {t:'🩺 Datos clínicos y monitor', sub:'Lo que no sale del transductor: paciente, gases y línea arterial.',
+     G:[['👤 Paciente', ['sexo','edad','talla','peso','bsaman','fc','pam','lactato']],
+        ['🩸 Presiones y gases', ['pad_man','pao2','spo2','fio2']],
+        ['📈 Línea arterial (VPP · VVS)', ['pp_sysmax','pp_diamax','pp_sysmin','pp_diamin','pp_vpp','pp_vvs','pp_vt6','pp_vt8']],
+        ['💧 Maniobra de fluidos', ['fr_man','fr_vent']]]}
+  ],
+  /* tarjetas de RESULTADO que se muestran al final del recorrido */
+  FIN:['sintesis','corazon visual','perfil de shock','conclusiones'],
+  _n(s){ return QN._n(s); },
+  build(){
+    if(this.built) return;
+    const wrap=document.querySelector('.wrap'); if(!wrap) return;
+    const self=this;
+    this.WIN.forEach(function(w, wi){
+      const card=document.createElement('div');
+      card.className='card acq-card';
+      card.style.order = 10+wi;
+      let html='<h2>'+w.t+'</h2><p class="sub">'+w.sub+'</p>';
+      w.G.forEach(function(g, gi){ html += '<p class="sub" style="color:var(--cy);font-weight:700;margin:14px 0 4px">'+g[0]+'</p><div class="grid three" data-slot="'+wi+'_'+gi+'"></div>'; });
+      card.innerHTML=html;
+      wrap.appendChild(card);
+      w.G.forEach(function(g, gi){
+        const slot=card.querySelector('[data-slot="'+wi+'_'+gi+'"]');
+        g[1].forEach(function(id){
+          const inp=document.getElementById(id); if(!inp) return;
+          const fld=inp.closest('.fld') || inp;
+          self.orig.push({el:fld, parent:fld.parentNode, next:fld.nextSibling});
+          slot.appendChild(fld);
+        });
+        if(!slot.children.length){ const h=slot.previousElementSibling; if(h) h.remove(); slot.remove(); }
+      });
+    });
+    this.built=true;
+  },
+  restore(){
+    this.orig.slice().reverse().forEach(function(o){
+      try{ o.parent.insertBefore(o.el, o.next); }catch(e){ try{ o.parent.appendChild(o.el); }catch(e2){} }
+    });
+    this.orig=[];
+    document.querySelectorAll('.acq-card').forEach(function(c){ c.remove(); });
+    this.built=false;
+  },
+  toggle(){
+    const wrap=document.querySelector('.wrap'); const btn=document.getElementById('qn_acq');
+    if(this.on){                                   // salir del modo adquisición
+      this.restore(); this.on=false;
+      if(btn) btn.classList.remove('on');
+      QN.all();
+      return;
+    }
+    QN.all();                                      // partir de un estado limpio
+    this.build(); this.on=true;
+    if(btn) btn.classList.add('on');
+    const self=this;
+    QN.cards.forEach(function(c){                  // ocultar todo salvo las tarjetas de resultado
+      const t=self._n(c.title);
+      const esFin = self.FIN.some(function(k){ return t.indexOf(k)>=0; });
+      c.el.classList.toggle('qn-hide', !esFin);
+      c.el.style.order = esFin ? 90 : '';
+    });
+    if(wrap) wrap.classList.add('qn-ord');
+    document.querySelectorAll('.qn-chip').forEach(function(b){ if(b!==btn) b.classList.remove('on'); });
+    const i=document.getElementById('qn_info'); if(i) i.textContent='5 ventanas · llena conforme exploras; la interpretación queda al final';
+    window.scrollTo({top:0,behavior:'smooth'});
+    calc();
   }
 };
 try{ QN.init(); }catch(e){}
