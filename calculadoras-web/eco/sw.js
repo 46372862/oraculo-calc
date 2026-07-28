@@ -1,4 +1,4 @@
-const CACHE='eco-202607281102';
+const CACHE='eco-202607281120';
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html'])));self.skipWaiting();});
 /* borra las cachés viejas: sin esto el celular seguiría mostrando la versión anterior */
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.map(k=>k===CACHE?null:caches.delete(k)))).then(()=>self.clients.claim()));});

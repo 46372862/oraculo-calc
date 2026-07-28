@@ -466,14 +466,18 @@
     <div class="res"><div class="lab">FS · fracción de acortamiento <small>(LVIDd − LVIDs)/LVIDd · normal 25–45%</small></div><div class="val"><span class="num" id="o_fs">—</span><span class="badge b-mut" id="b_fs">—</span></div></div>
     <div class="res"><div class="lab">EF · Teichholz <small>orientativa · normal ≥52% ♂ / ≥54% ♀</small></div><div class="val"><span class="num" id="o_ef">—</span><span class="badge b-mut" id="b_ef">—</span></div></div>
   </div>
-  <p class="sub" style="margin:14px 0 8px">🎯 Método de referencia · <b>Simpson biplano</b> (traza los volúmenes en 4C y 2C):</p>
+  <p class="sub" style="margin:14px 0 8px">🎯 Método de referencia · <b>Simpson BIPLANO</b> — traza los volúmenes en <b>4 cámaras</b> y en <b>2 cámaras</b>. Con un solo plano se calcula monoplano (menos exacto).</p>
   <div class="grid two">
-    <div class="fld"><label>VDF <span class="u">(mL, vol. diastólico final)</span></label><input id="edv" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>VSF <span class="u">(mL, vol. sistólico final)</span></label><input id="esv" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VDF · 4 cámaras <span class="u">(mL, telediástole)</span></label><input id="edv" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VSF · 4 cámaras <span class="u">(mL, telesístole)</span></label><input id="esv" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VDF · 2 cámaras <span class="u">(mL, telediástole)</span></label><input id="edv2" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VSF · 2 cámaras <span class="u">(mL, telesístole)</span></label><input id="esv2" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">EF · Simpson <small>(VDF−VSF)/VDF · normal ≥52% ♂ / ≥54% ♀</small></div><div class="val"><span class="num" id="o_efs">—</span><span class="badge b-mut" id="b_efs">—</span></div></div>
     <div class="res"><div class="lab">VS · Simpson <small>VDF − VSF</small></div><div class="val"><span class="num" id="o_svs">—</span></div></div>
+    <div class="res"><div class="lab">Volumen telediastólico indexado <small>VDF/BSA · dilatado &gt;74 ♂ / &gt;61 ♀ mL/m²</small></div><div class="val"><span class="num" id="o_edvi">—</span><span class="badge b-mut" id="b_edvi">—</span></div></div>
+    <div class="res"><div class="lab">Concordancia entre planos <small>4C vs 2C — discrepancia &gt;10 puntos sugiere mala traza</small></div><div class="val"><span class="num" id="o_planos" style="font-size:.95rem">—</span></div></div>
   </div>
   <div class="warnbox" id="w_dias" style="display:none">⚠️ <b>LVIDs ≥ LVIDd</b> — imposible fisiológicamente. Probablemente se invirtieron los frames diástole/sístole o el cáliper de diástole quedó mal colocado. <b>Repetir la medición</b> antes de reportar.</div>
 </div>
@@ -600,7 +604,10 @@
     <div class="fld"><label>Onda A <span class="u">(m/s)</span></label><input id="dia_A" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     <div class="fld"><label>e′ septal <span class="u">(cm/s)</span></label><input id="dia_esep" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     <div class="fld"><label>e′ lateral <span class="u">(cm/s)</span></label><input id="dia_elat" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Vol. AI indexado · LAVi <span class="u">(mL/m²)</span></label><input id="dia_lavi" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Vol. AI indexado · LAVi <span class="u">(mL/m² — o calcúlalo abajo)</span></label><input id="dia_lavi" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>AI · área en 4 cámaras <span class="u">(cm², telesístole)</span></label><input id="la_a4" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>AI · área en 2 cámaras <span class="u">(cm², telesístole)</span></label><input id="la_a2" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>AI · longitud MENOR de los 2 planos <span class="u">(cm)</span></label><input id="la_len" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <svg id="dopp" viewBox="0 0 320 120" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:430px;display:block;margin:12px auto 2px;background:#0a1120;border:1px solid var(--bd);border-radius:12px"></svg>
   <div style="text-align:center;color:var(--dim);font-size:.72rem;margin-bottom:8px">Doppler de llenado mitral (E · A) — el patrón cambia según los valores</div>
@@ -609,6 +616,8 @@
     <div class="res"><div class="lab">E/e′ promedio <small>(E×100)/e′prom · &gt;14 = presión ↑</small></div><div class="val"><span class="num" id="o_ee2">—</span><span class="badge b-mut" id="b_ee2">—</span></div></div>
     <div class="res"><div class="lab">Grado de disfunción diastólica</div><div class="val"><span class="gradebig c-mut" id="o_grade">—</span></div></div>
     <div class="res"><div class="lab">Presión de la AI estimada</div><div class="val"><span class="badge b-mut" id="b_lap">—</span></div></div>
+    <div class="res"><div class="lab">Volumen de la AI (biplano área-longitud) <small>0,85 × A4C × A2C / L</small></div><div class="val"><span class="num" id="o_lav">—</span></div></div>
+    <div class="res"><div class="lab">LAVi calculado <small>Vol AI / BSA · normal ≤34 mL/m²</small></div><div class="val"><span class="num" id="o_lavi_calc">—</span><span class="badge b-mut" id="b_lavi_calc">—</span></div></div>
   </div>
   <div style="margin-top:10px;font-size:.74rem;color:var(--mut);margin-bottom:5px">Criterios de presión elevada (ASE 2016):</div>
   <div class="chips" id="dia_crit"></div>
@@ -770,7 +779,9 @@ const RANGES={
   rv_wall:[1,20,'mm'], ecc_d1:[15,90,'mm'], ecc_d2:[15,90,'mm'],
   pe_size:[1,60,'mm'], pe_mit_e:[0.1,2.5,'m/s'], pe_mit_i:[0.1,2.5,'m/s'], pe_tri_i:[0.1,2.0,'m/s'], pe_tri_e:[0.1,2.0,'m/s'],
   pp_sysmax:[40,300,'mmHg'], pp_diamax:[10,200,'mmHg'], pp_sysmin:[40,300,'mmHg'], pp_diamin:[10,200,'mmHg'],
-  pp_vpp:[0,60,'%'], pp_vvs:[0,60,'%'], pp_vt6:[0,60,'%'], pp_vt8:[0,60,'%']
+  pp_vpp:[0,60,'%'], pp_vvs:[0,60,'%'], pp_vt6:[0,60,'%'], pp_vt8:[0,60,'%'],
+  edv2:[10,500,'mL'], esv2:[5,450,'mL'],
+  la_a4:[5,60,'cm²'], la_a2:[5,60,'cm²'], la_len:[2,10,'cm']
 };
 window._BADFIELDS=[];
 function num(id){
@@ -980,17 +991,52 @@ function calc(){
                        :(pvr<=2?'Normal (≤2)':'Elevada (>2 · ESC/ERS 2022)'), pvr>6?'b-warn':(pvr<=2?'b-ok':'b-bad'));
   } else { set('o_pvr','—','num'); badge('b_pvr','—','b-mut'); }
 
-  /* ---------- EF/VS por Simpson ---------- */
-  const edv=num('edv'), esv=num('esv');
-  if(isFinite(edv)&&isFinite(esv)&&edv>0){
-    if(esv>=edv){ set('o_efs','—','num'); badge('b_efs','revisar','b-bad'); document.getElementById('o_svs').textContent='—'; }
-    else { const efs=(edv-esv)/edv*100, svs=edv-esv; const cutEF=M?54:52; window._EFS=efs;
-      document.getElementById('o_efs').innerHTML=f(efs,0)+'<small>%</small>';
-      document.getElementById('o_efs').className='num '+(efs>=cutEF?'c-ok':efs>=40?'c-warn':'c-bad');
-      badge('b_efs', efs>=cutEF?'Normal':efs>=40?'Levemente ↓':efs>=30?'Moderada ↓':'Severa ↓', efs>=cutEF?'b-ok':efs>=40?'b-warn':'b-bad');
-      document.getElementById('o_svs').innerHTML=f(svs,0)+'<small>mL</small>';
-    }
-  } else { set('o_efs','—','num'); badge('b_efs','—','b-mut'); document.getElementById('o_svs').textContent='—'; }
+  /* ---------- EF/VS por Simpson · BIPLANO (4C + 2C) ---------- */
+  {
+    const e4=num('edv'), s4=num('esv'), e2=num('edv2'), s2=num('esv2');
+    const ok4=isFinite(e4)&&isFinite(s4)&&e4>0, ok2=isFinite(e2)&&isFinite(s2)&&e2>0;
+    let edvU=NaN, esvU=NaN, metodo='';
+    if(ok4&&ok2){ edvU=(e4+e2)/2; esvU=(s4+s2)/2; metodo='biplano (4C+2C)'; }
+    else if(ok4){ edvU=e4; esvU=s4; metodo='monoplano 4C'; }
+    else if(ok2){ edvU=e2; esvU=s2; metodo='monoplano 2C'; }
+    window._EFMET = metodo;
+    if(isFinite(edvU)&&isFinite(esvU)&&edvU>0){
+      if(esvU>=edvU){ set('o_efs','—','num'); badge('b_efs','revisar: VSF ≥ VDF','b-bad'); document.getElementById('o_svs').textContent='—'; window._EFS=NaN; }
+      else {
+        const efs=(edvU-esvU)/edvU*100, svs=edvU-esvU, cutEF=M?54:52;
+        window._EFS=efs;
+        document.getElementById('o_efs').innerHTML=f(efs,0)+'<small>%</small>';
+        document.getElementById('o_efs').className='num '+(efs>=cutEF?'c-ok':efs>=40?'c-warn':'c-bad');
+        badge('b_efs', (efs>=cutEF?'Normal':efs>=40?'Levemente ↓':efs>=30?'Moderada ↓':'Severa ↓')+' · '+metodo, efs>=cutEF?'b-ok':efs>=40?'b-warn':'b-bad');
+        document.getElementById('o_svs').innerHTML=f(svs,0)+'<small>mL</small>';
+        if(isFinite(bsa)&&bsa>0){ const edvi=edvU/bsa, cutV=M?74:61;
+          document.getElementById('o_edvi').innerHTML=f(edvi,0)+'<small>mL/m²</small>';
+          document.getElementById('o_edvi').className='num '+(edvi<=cutV?'c-ok':'c-bad');
+          badge('b_edvi', edvi<=cutV?'Normal':'VI dilatado (>'+cutV+')', edvi<=cutV?'b-ok':'b-bad');
+        } else { set('o_edvi','—','num'); badge('b_edvi','falta BSA','b-mut'); }
+      }
+    } else { set('o_efs','—','num'); badge('b_efs','—','b-mut'); document.getElementById('o_svs').textContent='—'; set('o_edvi','—','num'); badge('b_edvi','—','b-mut'); window._EFS=NaN; }
+    /* concordancia entre planos: si difieren mucho, la traza es dudosa */
+    if(ok4&&ok2&&s4<e4&&s2<e2){
+      const f4=(e4-s4)/e4*100, f2=(e2-s2)/e2*100, d=Math.abs(f4-f2);
+      document.getElementById('o_planos').textContent='4C '+f(f4,0)+'% · 2C '+f(f2,0)+'% → '+(d>10?'discrepan '+f(d,0)+' puntos: revisa la traza o el acortamiento del ápex':'concordantes');
+      document.getElementById('o_planos').className='num '+(d>10?'c-warn':'c-ok');
+    } else { set('o_planos', ok4?'falta el plano de 2 cámaras para el biplano':'—','num'); }
+  }
+
+  /* ---------- Volumen de la AI · biplano área-longitud ---------- */
+  {
+    const a4=num('la_a4'), a2=num('la_a2'), L=num('la_len');
+    if(isFinite(a4)&&isFinite(a2)&&isFinite(L)&&L>0){
+      const lav=0.85*a4*a2/L;
+      document.getElementById('o_lav').innerHTML=f(lav,0)+'<small>mL</small>';
+      if(isFinite(bsa)&&bsa>0){ const lavi=lav/bsa; window._LAVI_CALC=lavi;
+        document.getElementById('o_lavi_calc').innerHTML=f(lavi,0)+'<small>mL/m²</small>';
+        document.getElementById('o_lavi_calc').className='num '+(lavi<=34?'c-ok':'c-bad');
+        badge('b_lavi_calc', lavi<=34?'Normal (≤34)':'Dilatada (>34)', lavi<=34?'b-ok':'b-bad');
+      } else { set('o_lavi_calc','—','num'); badge('b_lavi_calc','falta BSA','b-mut'); window._LAVI_CALC=NaN; }
+    } else { set('o_lav','—','num'); set('o_lavi_calc','—','num'); badge('b_lavi_calc','—','b-mut'); window._LAVI_CALC=NaN; }
+  }
 
   /* ---------- VExUS ---------- */
   const vivc=parseInt(document.getElementById('vx_ivc').value), vhep=parseInt(document.getElementById('vx_hep').value), vpor=parseInt(document.getElementById('vx_por').value), vren=parseInt(document.getElementById('vx_ren').value);
@@ -1146,7 +1192,9 @@ function calc(){
 
   /* ---------- 🌊 Función diastólica (ASE 2016) + Doppler ---------- */
   {
-    const E=num('dia_E'), A=num('dia_A'), es=num('dia_esep'), el=num('dia_elat'), lavi=num('dia_lavi'), trv=num('vtr');
+    const E=num('dia_E'), A=num('dia_A'), es=num('dia_esep'), el=num('dia_elat'), trv=num('vtr');
+    /* si no escribiste el LAVi a mano, se usa el que sale del biplano área-longitud */
+    const lavi = isFinite(num('dia_lavi')) ? num('dia_lavi') : (isFinite(window._LAVI_CALC) ? window._LAVI_CALC : NaN);
     (function(){
       const svg=document.getElementById('dopp'); if(!svg) return;
       if(!((isFinite(E)&&E>0)||(isFinite(A)&&A>0))){ svg.innerHTML='<text x="160" y="62" text-anchor="middle" fill="#6c7d95" font-size="12">Ingresa E y A para ver el patrón</text>'; return; }
@@ -1843,10 +1891,13 @@ const ACQ = {
   WIN:[
     {t:'🫀 Apical 4 cámaras', sub:'Diástole → sístole → Doppler mitral → Doppler tricuspídeo → VTI. La ventana donde más se obtiene.',
      G:[['📥 Congela en DIÁSTOLE (telediástole)', ['rv_eda','edv','rv_d','lv_bd']],
-        ['📤 Congela en SÍSTOLE (telesístole)', ['rv_esa','esv','ra_vol','ra_area','dia_lavi']],
+        ['📤 Congela en SÍSTOLE (telesístole) — cámaras izquierdas y derechas', ['rv_esa','esv','ra_vol','ra_area','la_a4','la_len','dia_lavi']],
         ['🔵 Doppler MITRAL y anillo (lado izquierdo)', ['dia_E','dia_A','dia_esep','dia_elat','ee_lat','pe_mit_e','pe_mit_i','dpdt_lv_dt']],
         ['🔴 Doppler TRICUSPÍDEO y anillo (lado derecho)', ['vtr','rv_s','tapse','ee_tri','rv_strain','pe_tri_i','pe_tri_e','dpdt_rv_dt','mpi_a','mpi_et','mpi_ivct','mpi_ivrt','mpi_et_tdi']],
         ['🌀 VTI y jets (apical 5 cámaras)', ['lvot_vti','av_vmax','av_vti','av_gmed','fr_vti0','fr_vti1','fr_vmax','fr_vmin']]]},
+    {t:'🫀 Apical 2 cámaras', sub:'El segundo plano del BIPLANO. Sin esta ventana, la FEVI y el volumen de la AI quedan monoplano (menos exactos).',
+     G:[['📥 Congela en DIÁSTOLE', ['edv2']],
+        ['📤 Congela en SÍSTOLE', ['esv2','la_a2']]]},
     {t:'📏 Paraesternal eje largo', sub:'Tracto de salida y las medidas lineales para masa y función.',
      G:[['📐 TSVI y modo M / 2D', ['lvot_d','ivsd','lvidd','lvpwd','lvids']]]},
     {t:'⭕ Paraesternal eje corto', sub:'Geometría septal y cuantificación de regurgitación.',
