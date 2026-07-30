@@ -100,6 +100,7 @@
   label.chk{display:flex;gap:9px;align-items:center;font-weight:400;cursor:pointer;padding:6px 2px;min-height:44px}
   .fld label.chk::before{content:none}
   /* 🧭 Barra de navegación por escenario clínico */
+  .qnav{overflow-anchor:none}
   .qnav{position:sticky;top:0;z-index:60;margin:0 0 14px;padding:10px 12px;border-radius:14px;
     background:rgba(9,16,30,.94);backdrop-filter:blur(10px);border:1px solid rgba(56,189,248,.28);box-shadow:0 8px 26px rgba(0,0,0,.45)}
   .qn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -111,6 +112,20 @@
   .qn-chip.on{background:linear-gradient(120deg,var(--cy),#a78bfa);color:#06101f;border-color:transparent}
   .qn-info{color:var(--dim);font-size:.78rem;margin-left:auto;white-space:nowrap}
   .qn-hide{display:none !important}
+  /* barra compacta al bajar (gana pantalla en el móvil) */
+  .qnav{transition:padding .18s ease}
+  .qnav{padding-top:max(10px,env(safe-area-inset-top))}
+  .qnav input[type=search]{font-size:16px}   /* <16px hace que iOS haga zoom solo */
+  .qnav.min{padding:6px 10px;padding-top:max(6px,env(safe-area-inset-top))}
+  .qnav.min .qn-row{display:none}
+  .qnav .qn-mini{display:none}
+  .qnav.min .qn-mini{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.9rem;font-weight:700;color:var(--cy);padding:10px 4px;min-height:44px}
+  .qn-mini .qn-mini-t{color:var(--txt);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qn-mini .qn-mini-c{margin-left:auto;color:var(--dim);font-weight:400;font-size:.76rem}
+  /* 🔁 aviso de unidad autoconvertida */
+  .uhint{font-size:.72rem;color:var(--warn);font-weight:700;margin-top:3px;line-height:1.25}
+  input.u-conv{border-left-color:var(--warn) !important;background:linear-gradient(90deg,rgba(245,181,68,.12),rgba(245,181,68,.03)) !important}
+  .autoval{font-size:.72rem;color:var(--cy);font-weight:700;margin-top:3px}
   .wrap.qn-ord{display:flex;flex-direction:column}
   .wrap.qn-ord .qnav{order:-999}
   @media print{.qnav{display:none}}
@@ -209,6 +224,7 @@
     <span class="qn-info" id="qn_info"></span>
   </div>
   <div class="qn-row" id="qn_scn"></div>
+  <div class="qn-mini" onclick="QN.expand()"><span>🧭</span><span class="qn-mini-t" id="qn_mini_t">Módulos y escenarios</span><span class="qn-mini-c">tocar para abrir</span></div>
 </div>
 
 <!-- ===================== PACIENTE ===================== -->
@@ -221,10 +237,10 @@
         <option value="H">Hombre</option>
         <option value="M">Mujer</option>
       </select></div>
-    <div class="fld"><label>Edad <span class="u">(años)</span></label><input id="edad" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Talla <span class="u">(cm)</span></label><input id="talla" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Peso <span class="u">(kg)</span></label><input id="peso" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>BSA directa <span class="u">(m², opcional)</span></label><input id="bsaman" type="number" inputmode="decimal" placeholder="auto" oninput="calc()"></div>
+    <div class="fld"><label>Edad <span class="u">(años)</span></label><input id="edad" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Talla <span class="u">(cm)</span></label><input id="talla" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Peso <span class="u">(kg)</span></label><input id="peso" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>BSA directa <span class="u">(m², opcional)</span></label><input id="bsaman" type="text" inputmode="decimal" placeholder="auto" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">BSA (superficie corporal)</div><div class="val"><span class="num" id="o_bsa">—</span></div></div>
@@ -254,7 +270,7 @@
   <h2>🚨 Perfil de shock y conducta orientativa</h2>
   <p class="sub">Integra PAM, índice cardíaco, presiones de llenado y lactato → perfil de Nohria-Stevenson, tipo de shock probable y marcos de manejo. <b>Orientación educativa — no sustituye el juicio clínico ni indica dosis.</b></p>
   <div class="grid two">
-    <div class="fld"><label>Lactato <span class="u">(mmol/L, opcional)</span></label><input id="lactato" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Lactato <span class="u">(mmol/L, opcional)</span></label><input id="lactato" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     <div class="fld" style="justify-content:flex-end"><label style="color:var(--dim)">PAM e IC se toman de «Gasto cardíaco»</label></div>
   </div>
   <div class="shockmap">
@@ -274,7 +290,7 @@
   <p class="sub">PAD → PSAP → PAPm → PCP. Estima primero la PAD (alimenta la PSAP).</p>
 
   <div class="grid two">
-    <div class="fld"><label>PAD · presión auricular derecha <span class="u">(mmHg — editable)</span></label><input id="pad_man" type="number" inputmode="decimal" value="8" oninput="window._PAD_SET=1;calc()"></div>
+    <div class="fld"><label>PAD · presión auricular derecha <span class="u">(mmHg — editable)</span></label><input id="pad_man" type="text" inputmode="decimal" value="8" oninput="window._PAD_SET=1;calc()"></div>
     <div class="fld"><label>Estimar por VCI <span class="u">(rellena la PAD)</span></label>
       <select id="padvci" onchange="document.getElementById('pad_man').value=this.value; window._PAD_SET=1; calc()">
         <option value="3">VCI ≤2,1 cm · colapso &gt;50% → 3 mmHg</option>
@@ -282,15 +298,20 @@
         <option value="15">VCI &gt;2,1 cm · colapso &lt;50% → 15 mmHg</option>
       </select></div>
   </div>
-  <div class="fld" style="margin-top:10px"><label>E/E′ TRICUSPÍDEO <span class="u">(derecho → PAD · E y e′ del anillo tricuspídeo)</span></label><input id="ee_tri" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+  <p class="sub" style="margin:12px 0 4px">🔴 <b>E/e′ TRICUSPÍDEO</b> (derecho → PAD). Mide la <b>E</b> y la <b>e′</b> del anillo tricuspídeo y el cociente sale solo — o escríbelo directo si ya lo tienes.</p>
+  <div class="grid three">
+    <div class="fld"><label>Onda E tricuspídea <span class="u">(m/s o cm/s — se detecta)</span></label><input id="tri_E" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>e′ tricuspídea lateral <span class="u">(cm/s, TDI)</span></label><input id="tri_e" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>E/E′ tricuspídeo <span class="u">(se calcula solo si dejas vacío)</span></label><input id="ee_tri" type="text" inputmode="decimal" placeholder="auto" oninput="calc()"></div>
+  </div>
   <div class="out">
     <div class="res"><div class="lab">PAD usada <small>(alimenta la PSAP)</small></div><div class="val"><span class="num" id="o_pad">—</span></div></div>
     <div class="res" style="cursor:pointer" title="Tocar para usar este valor como PAD" onclick="var n=parseFloat((document.getElementById('o_paddop').textContent||'').replace(',','.')); if(isFinite(n)){document.getElementById('pad_man').value=n; calc();}"><div class="lab">PAD por Doppler <small>1,62 × E/E′tric + 2,13 · toca para usar ↑</small></div><div class="val"><span class="num" id="o_paddop">—</span></div></div>
   </div>
 
   <div class="grid two" style="margin-top:12px">
-    <div class="fld"><label>Vmáx insuf. tricuspídea (VTR) <span class="u">(m/s)</span></label><input id="vtr" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>TAP · tiempo aceleración pulmonar <span class="u">(ms)</span></label><input id="tap" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Vmáx insuf. tricuspídea (VTR) <span class="u">(m/s)</span></label><input id="vtr" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>TAP · tiempo aceleración pulmonar <span class="u">(ms)</span></label><input id="tap" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">PSAP <small>4 × VTR² + PAD · normal ≤35</small></div><div class="val"><span class="num" id="o_psap">—</span><span class="badge b-mut" id="b_psap">—</span></div></div>
@@ -300,8 +321,8 @@
   </div>
 
   <div class="grid two" style="margin-top:12px">
-    <div class="fld"><label>E/E′ MITRAL lateral <span class="u">(izquierdo → PCP · NO el tricuspídeo)</span></label><input id="ee_lat" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>TAPSE <span class="u">(mm, para acoplamiento)</span></label><input id="tapse" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>E/E′ MITRAL lateral <span class="u">(izquierdo → PCP · NO el tricuspídeo)</span></label><input id="ee_lat" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>TAPSE <span class="u">(mm, para acoplamiento)</span></label><input id="tapse" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">PCP <small>1,24 × E/E′lat + 1,9</small></div><div class="val"><span class="num" id="o_pcp">—</span><span class="badge b-mut" id="b_pcp">—</span></div></div>
@@ -315,11 +336,11 @@
   <h2>🩺 Gasto cardíaco, índice y resistencias</h2>
   <p class="sub">Por LVOT-VTI (ecuación de continuidad). La RVS usa la PAD/PVC de arriba; la RVP usa la VTR de arriba.</p>
   <div class="grid two">
-    <div class="fld"><label>Diámetro TSVI (LVOT) <span class="u">(cm)</span></label><input id="lvot_d" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>LVOT-VTI <span class="u">(cm)</span></label><input id="lvot_vti" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>FC <span class="u">(lpm)</span></label><input id="fc" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>PAM <span class="u">(mmHg, para RVS)</span></label><input id="pam" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>VTI del TSVD (RVOT) <span class="u">(cm, para RVP)</span></label><input id="rvot_vti" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Diámetro TSVI (LVOT) <span class="u">(cm)</span></label><input id="lvot_d" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>LVOT-VTI <span class="u">(cm)</span></label><input id="lvot_vti" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>FC <span class="u">(lpm)</span></label><input id="fc" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>PAM <span class="u">(mmHg, para RVS)</span></label><input id="pam" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VTI del TSVD (RVOT) <span class="u">(cm, para RVP)</span></label><input id="rvot_vti" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">Área TSVI <small>0,785 × D²</small></div><div class="val"><span class="num" id="o_lvota">—</span></div></div>
@@ -339,21 +360,21 @@
     <div class="fld"><label>Maniobra</label>
       <select id="fr_man" oninput="calc()">
         <option value="epp">Elevación pasiva de piernas (≥10%)</option>
-        <option value="mini">Mini-bolo 100 mL en 1 min (≥6%)</option>
+        <option value="mini">Mini-bolo 100 mL en 1 min (≥10% por VTI)</option>
         <option value="eeo">Oclusión teleespiratoria 15 s (≥5%)</option>
         <option value="bolo">Bolo completo 500 mL (≥15%)</option>
       </select></div>
-    <div class="fld"><label>VTI TSVI · basal <span class="u">(cm)</span></label><input id="fr_vti0" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>VTI TSVI · tras la maniobra <span class="u">(cm)</span></label><input id="fr_vti1" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VTI TSVI · basal <span class="u">(cm)</span></label><input id="fr_vti0" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VTI TSVI · tras la maniobra <span class="u">(cm)</span></label><input id="fr_vti1" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     <div class="fld"><label>Modo ventilatorio</label>
       <select id="fr_vent" oninput="calc()">
         <option value="vm">VM controlada · paciente pasivo</option>
         <option value="esp">Ventilación espontánea</option>
       </select></div>
-    <div class="fld"><label>VCI · diámetro máximo <span class="u">(mm)</span></label><input id="fr_ivcmax" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>VCI · diámetro mínimo <span class="u">(mm)</span></label><input id="fr_ivcmin" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Vpico aórtica · máxima <span class="u">(cm/s, ciclo resp.)</span></label><input id="fr_vmax" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Vpico aórtica · mínima <span class="u">(cm/s, ciclo resp.)</span></label><input id="fr_vmin" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VCI · diámetro máximo <span class="u">(mm)</span></label><input id="fr_ivcmax" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VCI · diámetro mínimo <span class="u">(mm)</span></label><input id="fr_ivcmin" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Vpico aórtica · máxima <span class="u">(cm/s, ciclo resp.)</span></label><input id="fr_vmax" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Vpico aórtica · mínima <span class="u">(cm/s, ciclo resp.)</span></label><input id="fr_vmin" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">Δ VTI con la maniobra <small>prueba dinámica — el patrón de referencia</small></div><div class="val"><span class="num" id="o_dvti">—</span><span class="badge b-mut" id="b_dvti">—</span></div></div>
@@ -369,17 +390,17 @@
   <h2>📈 VPP · VVS — pruebas dinámicas de la línea arterial</h2>
   <p class="sub">Variación de la <b>presión de pulso</b> (curva arterial) y del <b>volumen sistólico</b> (monitor de gasto). Miden el mismo fenómeno que el ΔVTI: la interacción corazón–pulmón durante la ventilación con presión positiva.</p>
   <div class="grid three">
-    <div class="fld"><label>PAS máxima del ciclo respiratorio <span class="u">(mmHg)</span></label><input id="pp_sysmax" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>PAD en ese mismo latido <span class="u">(mmHg)</span></label><input id="pp_diamax" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>PAS mínima del ciclo respiratorio <span class="u">(mmHg)</span></label><input id="pp_sysmin" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>PAD en ese mismo latido <span class="u">(mmHg)</span></label><input id="pp_diamin" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>VPP directa del monitor <span class="u">(%, si ya la muestra)</span></label><input id="pp_vpp" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>VVS del monitor <span class="u">(%, PiCCO/Vigileo/EV1000)</span></label><input id="pp_vvs" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>PAS máxima del ciclo respiratorio <span class="u">(mmHg)</span></label><input id="pp_sysmax" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>PAD en ese mismo latido <span class="u">(mmHg)</span></label><input id="pp_diamax" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>PAS mínima del ciclo respiratorio <span class="u">(mmHg)</span></label><input id="pp_sysmin" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>PAD en ese mismo latido <span class="u">(mmHg)</span></label><input id="pp_diamin" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VPP directa del monitor <span class="u">(%, si ya la muestra)</span></label><input id="pp_vpp" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VVS del monitor <span class="u">(%, PiCCO/Vigileo/EV1000)</span></label><input id="pp_vvs" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <p class="sub" style="margin:10px 0 2px"><b>Prueba del volumen tidal</b> — rescata la VPP cuando ventilas protector con 6 mL/kg: sube el Vt a 8 mL/kg 1 minuto y mide otra vez.</p>
   <div class="grid three">
-    <div class="fld"><label>VPP con Vt 6 mL/kg <span class="u">(%)</span></label><input id="pp_vt6" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>VPP con Vt 8 mL/kg <span class="u">(%)</span></label><input id="pp_vt8" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VPP con Vt 6 mL/kg <span class="u">(%)</span></label><input id="pp_vt6" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VPP con Vt 8 mL/kg <span class="u">(%)</span></label><input id="pp_vt8" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="fld" style="grid-column:1/-1;margin-top:8px"><label>Condiciones de validez <span class="u">— marca las que se cumplen (solo el 2–7% de los pacientes de UCI las cumple TODAS)</span></label>
     <div style="display:flex;gap:14px;flex-wrap:wrap;padding:6px 2px">
@@ -413,10 +434,10 @@
   <h2>🫀 Válvula aórtica (continuidad) y shunt Qp/Qs</h2>
   <p class="sub">Usa el <b>Diámetro TSVI, LVOT-VTI, VTI del TSVD y BSA</b> de arriba. AVA por ecuación de continuidad; gradiente por Bernoulli; Qp/Qs por flujos.</p>
   <div class="grid three">
-    <div class="fld"><label>Vmáx aórtica (jet AV) <span class="u">(m/s)</span></label><input id="av_vmax" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>VTI aórtica (jet AV) <span class="u">(cm)</span></label><input id="av_vti" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Diámetro TSVD (RVOT) <span class="u">(cm, para Qp/Qs)</span></label><input id="rvot_d" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Gradiente MEDIO aórtico <span class="u">(mmHg — del trazado)</span></label><input id="av_gmed" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Vmáx aórtica (jet AV) <span class="u">(m/s)</span></label><input id="av_vmax" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VTI aórtica (jet AV) <span class="u">(cm)</span></label><input id="av_vti" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Diámetro TSVD (RVOT) <span class="u">(cm, para Qp/Qs)</span></label><input id="rvot_d" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Gradiente MEDIO aórtico <span class="u">(mmHg — del trazado)</span></label><input id="av_gmed" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">AVA · área valvular aórtica <small>(Área TSVI × VTIlvot)/VTIao</small></div><div class="val"><span class="num" id="o_ava">—</span><span class="badge b-mut" id="b_ava">—</span></div></div>
@@ -435,9 +456,9 @@
   <h2>💪 Masa y geometría del VI</h2>
   <p class="sub">Medir en <b>diástole</b>, paraesternal eje largo, distal a las valvas mitrales, perpendicular al eje largo. Fórmula de Devereux (ASE/EACVI 2015).</p>
   <div class="grid three">
-    <div class="fld"><label>IVSd <span class="u">(cm)</span></label><input id="ivsd" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>LVIDd <span class="u">(cm, diástole)</span></label><input id="lvidd" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>LVPWd <span class="u">(cm)</span></label><input id="lvpwd" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>IVSd <span class="u">(cm)</span></label><input id="ivsd" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>LVIDd <span class="u">(cm, diástole)</span></label><input id="lvidd" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>LVPWd <span class="u">(cm)</span></label><input id="lvpwd" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">Masa VI (Devereux)</div><div class="val"><span class="num" id="o_masa">—</span></div></div>
@@ -459,8 +480,8 @@
   <h2>📉 Función sistólica (lineal, modo M/2D)</h2>
   <p class="sub">FS y EF por Teichholz a partir de los diámetros. <b>El método lineal es orientativo</b> — para EF fiable usar Simpson biplano.</p>
   <div class="grid two">
-    <div class="fld"><label>LVIDd <span class="u">(cm, diástole) — usa el de arriba</span></label><input id="lvidd2" type="number" inputmode="decimal" placeholder="↔ ligado a LVIDd" oninput="syncLvidd(this);calc()"></div>
-    <div class="fld"><label>LVIDs <span class="u">(cm, sístole)</span></label><input id="lvids" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>LVIDd <span class="u">(cm, diástole) — usa el de arriba</span></label><input id="lvidd2" type="text" inputmode="decimal" placeholder="↔ ligado a LVIDd" oninput="syncLvidd(this);calc()"></div>
+    <div class="fld"><label>LVIDs <span class="u">(cm, sístole)</span></label><input id="lvids" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">FS · fracción de acortamiento <small>(LVIDd − LVIDs)/LVIDd · normal 25–45%</small></div><div class="val"><span class="num" id="o_fs">—</span><span class="badge b-mut" id="b_fs">—</span></div></div>
@@ -468,10 +489,10 @@
   </div>
   <p class="sub" style="margin:14px 0 8px">🎯 Método de referencia · <b>Simpson BIPLANO</b> — traza los volúmenes en <b>4 cámaras</b> y en <b>2 cámaras</b>. Con un solo plano se calcula monoplano (menos exacto).</p>
   <div class="grid two">
-    <div class="fld"><label>VDF · 4 cámaras <span class="u">(mL, telediástole)</span></label><input id="edv" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>VSF · 4 cámaras <span class="u">(mL, telesístole)</span></label><input id="esv" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>VDF · 2 cámaras <span class="u">(mL, telediástole)</span></label><input id="edv2" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>VSF · 2 cámaras <span class="u">(mL, telesístole)</span></label><input id="esv2" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VDF · 4 cámaras <span class="u">(mL, telediástole)</span></label><input id="edv" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VSF · 4 cámaras <span class="u">(mL, telesístole)</span></label><input id="esv" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VDF · 2 cámaras <span class="u">(mL, telediástole)</span></label><input id="edv2" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VSF · 2 cámaras <span class="u">(mL, telesístole)</span></label><input id="esv2" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">EF · Simpson <small>(VDF−VSF)/VDF · normal ≥52% ♂ / ≥54% ♀</small></div><div class="val"><span class="num" id="o_efs">—</span><span class="badge b-mut" id="b_efs">—</span></div></div>
@@ -487,14 +508,14 @@
   <h2>🫀 Ventrículo derecho y aurícula derecha</h2>
   <p class="sub">Función sistólica del VD (S′, FAC, TAPSE), tamaño del VD y de la AD. La <b>TAPSE</b> se toma de «Presiones pulmonares».</p>
   <div class="grid three">
-    <div class="fld"><label>Onda S′ tricuspídea lateral <span class="u">(cm/s, TDI)</span></label><input id="rv_s" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Área VD telediástole <span class="u">(cm², para FAC)</span></label><input id="rv_eda" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Área VD telesístole <span class="u">(cm², para FAC)</span></label><input id="rv_esa" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Diámetro basal VD · RVD1 <span class="u">(mm)</span></label><input id="rv_d" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Diámetro basal VI <span class="u">(mm, para VD/VI)</span></label><input id="lv_bd" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Volumen de la AD <span class="u">(mL, para RAVi)</span></label><input id="ra_vol" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Área de la AD <span class="u">(cm², opcional)</span></label><input id="ra_area" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Strain libre del VD <span class="u">(%, negativo, opcional)</span></label><input id="rv_strain" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Onda S′ tricuspídea lateral <span class="u">(cm/s, TDI)</span></label><input id="rv_s" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Área VD telediástole <span class="u">(cm², para FAC)</span></label><input id="rv_eda" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Área VD telesístole <span class="u">(cm², para FAC)</span></label><input id="rv_esa" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Diámetro basal VD · RVD1 <span class="u">(mm)</span></label><input id="rv_d" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Diámetro basal VI <span class="u">(mm, para VD/VI)</span></label><input id="lv_bd" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Volumen de la AD <span class="u">(mL, para RAVi)</span></label><input id="ra_vol" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Área de la AD <span class="u">(cm², opcional)</span></label><input id="ra_area" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Strain libre del VD <span class="u">(%, negativo, opcional)</span></label><input id="rv_strain" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">S′ tricuspídea <small>normal &gt;9,5 cm/s</small></div><div class="val"><span class="num" id="o_rvs">—</span><span class="badge b-mut" id="b_rvs">—</span></div></div>
@@ -514,9 +535,9 @@
   <h2>🫁 VD agudo · sospecha de TEP</h2>
   <p class="sub">Signos que distinguen la <b>sobrecarga AGUDA</b> del VD (cor pulmonale agudo) de la crónica. Usa el <b>TAP</b> y la <b>VTR</b> de «Presiones pulmonares» y la relación <b>VD/VI</b> del módulo del VD.</p>
   <div class="grid three">
-    <div class="fld"><label>Grosor pared libre del VD <span class="u">(mm, subcostal)</span></label><input id="rv_wall" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Diámetro VI · septo-lateral <span class="u">(mm, eje corto sístole)</span></label><input id="ecc_d1" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Diámetro VI · anteroposterior <span class="u">(mm, eje corto sístole)</span></label><input id="ecc_d2" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Grosor pared libre del VD <span class="u">(mm, subcostal)</span></label><input id="rv_wall" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Diámetro VI PERPENDICULAR al septo <span class="u">(mm — septo→pared lateral, eje corto)</span></label><input id="ecc_d1" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Diámetro VI PARALELO al septo <span class="u">(mm — antero-inferior, eje corto)</span></label><input id="ecc_d2" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     <div class="fld" style="grid-column:1/-1"><label>Hallazgos observados</label>
       <div style="display:flex;gap:16px;flex-wrap:wrap;padding:6px 2px">
         <label class="chk"><input type="checkbox" id="ck_mcconnell" style="width:auto" onchange="calc()"> Signo de McConnell (pared libre acinética, ápex conservado)</label>
@@ -525,7 +546,7 @@
   </div>
   <div class="out">
     <div class="res"><div class="lab">Signo 60/60 <small>TAP &lt;60 ms + gradiente pico IT &lt;60 mmHg</small></div><div class="val"><span class="num" id="o_6060" style="font-size:1rem">—</span><span class="badge b-mut" id="b_6060">—</span></div></div>
-    <div class="res"><div class="lab">Índice de excentricidad del VI <small>D septo-lateral / D anteroposterior · &gt;1,1 anormal</small></div><div class="val"><span class="num" id="o_ecc">—</span><span class="badge b-mut" id="b_ecc">—</span></div></div>
+    <div class="res"><div class="lab">Índice de excentricidad del VI <small>D paralelo / D perpendicular al septo · &gt;1,1 anormal</small></div><div class="val"><span class="num" id="o_ecc">—</span><span class="badge b-mut" id="b_ecc">—</span></div></div>
     <div class="res"><div class="lab">Cronología por grosor de la pared <small>&gt;5 mm sugiere sobrecarga CRÓNICA</small></div><div class="val"><span class="num" id="o_rvwall" style="font-size:1rem">—</span><span class="badge b-mut" id="b_rvwall">—</span></div></div>
     <div class="res" style="grid-column:1/-1"><div class="lab">Lectura integrada</div><div class="val"><span class="num" id="o_rvacute" style="font-size:1rem">—</span></div></div>
   </div>
@@ -537,11 +558,11 @@
   <h2>🫧 Derrame pericárdico y taponamiento</h2>
   <p class="sub">El taponamiento es un <b>diagnóstico clínico-ecográfico</b>: no lo define el tamaño del derrame, sino la <b>fisiología</b> (colapsos, plétora de VCI y variación respiratoria de los flujos).</p>
   <div class="grid three">
-    <div class="fld"><label>Derrame · espesor máximo <span class="u">(mm, telediástole)</span></label><input id="pe_size" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Onda E mitral · espiración <span class="u">(m/s)</span></label><input id="pe_mit_e" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Onda E mitral · inspiración <span class="u">(m/s)</span></label><input id="pe_mit_i" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Onda E tricuspídea · inspiración <span class="u">(m/s)</span></label><input id="pe_tri_i" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Onda E tricuspídea · espiración <span class="u">(m/s)</span></label><input id="pe_tri_e" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Derrame · espesor máximo <span class="u">(mm, telediástole)</span></label><input id="pe_size" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Onda E mitral · espiración <span class="u">(m/s)</span></label><input id="pe_mit_e" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Onda E mitral · inspiración <span class="u">(m/s)</span></label><input id="pe_mit_i" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Onda E tricuspídea · inspiración <span class="u">(m/s)</span></label><input id="pe_tri_i" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Onda E tricuspídea · espiración <span class="u">(m/s)</span></label><input id="pe_tri_e" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     <div class="fld" style="grid-column:1/-1"><label>Signos observados</label>
       <div style="display:flex;gap:16px;flex-wrap:wrap;padding:6px 2px">
         <label class="chk"><input type="checkbox" id="ck_colad" style="width:auto" onchange="calc()"> Colapso sistólico de la AD &gt;⅓ del ciclo</label>
@@ -563,8 +584,8 @@
   <h2>📈 dP/dt · contractilidad (Doppler)</h2>
   <p class="sub">Velocidad de ascenso de presión ventricular en la contracción isovolumétrica, sobre el <b>Doppler continuo</b> del jet de regurgitación (rama ascendente, barrido 100 mm/s). Mide el <b>Δt</b> entre dos puntos de velocidad fijos.</p>
   <div class="grid two">
-    <div class="fld"><label>VI · Δt de 1→3 m/s (jet <b>IM</b>) <span class="u">(ms)</span></label><input id="dpdt_lv_dt" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>VD · Δt de 1→2 m/s (jet <b>IT</b>) <span class="u">(ms)</span></label><input id="dpdt_rv_dt" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VI · Δt de 1→3 m/s (jet <b>IM</b>) <span class="u">(ms)</span></label><input id="dpdt_lv_dt" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>VD · Δt de 1→2 m/s (jet <b>IT</b>) <span class="u">(ms)</span></label><input id="dpdt_rv_dt" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">dP/dt del VI <small>ΔP 32 mmHg ÷ Δt · &gt;1200 normal · 1000–1200 límite · &lt;1000 reducida · &lt;800 severa</small></div><div class="val"><span class="num" id="o_dpdt_lv">—</span><span class="badge b-mut" id="b_dpdt_lv">—</span></div></div>
@@ -579,14 +600,14 @@
   <p class="sub">Índice de rendimiento miocárdico <b>global</b> (sístole + diástole) del VD. Usa el método según tu trazado; los <b>cortes NO son intercambiables</b>. Con ritmo irregular (FA) usa el método TDI de un solo latido.</p>
   <h3 style="margin:6px 0 4px;font-size:.86rem;color:#818cf8">Método Doppler pulsado <span class="u" style="font-weight:400">(2 latidos)</span></h3>
   <div class="grid two">
-    <div class="fld"><label>Cierre-apertura tricuspídeo · «a» (TCO) <span class="u">(ms)</span></label><input id="mpi_a" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Tiempo de eyección del VD · ET (TSVD) <span class="u">(ms)</span></label><input id="mpi_et" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Cierre-apertura tricuspídeo · «a» (TCO) <span class="u">(ms)</span></label><input id="mpi_a" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Tiempo de eyección del VD · ET (TSVD) <span class="u">(ms)</span></label><input id="mpi_et" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <h3 style="margin:10px 0 4px;font-size:.86rem;color:#818cf8">Método TDI · anillo tricuspídeo lateral <span class="u" style="font-weight:400">(1 latido)</span></h3>
   <div class="grid three">
-    <div class="fld"><label>IVCT <span class="u">(ms)</span></label><input id="mpi_ivct" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>IVRT <span class="u">(ms)</span></label><input id="mpi_ivrt" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>ET · eyección <span class="u">(ms)</span></label><input id="mpi_et_tdi" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>IVCT <span class="u">(ms)</span></label><input id="mpi_ivct" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>IVRT <span class="u">(ms)</span></label><input id="mpi_ivrt" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>ET · eyección <span class="u">(ms)</span></label><input id="mpi_et_tdi" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <div class="out">
     <div class="res"><div class="lab">MPI pulsado <small>(a−ET)/ET · normal ≤0,43 · &gt;0,43 disfunción</small></div><div class="val"><span class="num" id="o_mpi_pw">—</span><span class="badge b-mut" id="b_mpi_pw">—</span></div></div>
@@ -600,19 +621,22 @@
   <h2>🌊 Función diastólica (ASE 2016)</h2>
   <p class="sub">Patrón de llenado mitral y estimación de la presión de la AI. Reutiliza la <b>VTR</b> de arriba (criterio de IT). El Doppler se dibuja con tus ondas E y A.</p>
   <div class="grid three">
-    <div class="fld"><label>Onda E <span class="u">(m/s)</span></label><input id="dia_E" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Onda A <span class="u">(m/s)</span></label><input id="dia_A" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>e′ septal <span class="u">(cm/s)</span></label><input id="dia_esep" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>e′ lateral <span class="u">(cm/s)</span></label><input id="dia_elat" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>Vol. AI indexado · LAVi <span class="u">(mL/m² — o calcúlalo abajo)</span></label><input id="dia_lavi" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>AI · área en 4 cámaras <span class="u">(cm², telesístole)</span></label><input id="la_a4" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>AI · área en 2 cámaras <span class="u">(cm², telesístole)</span></label><input id="la_a2" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-    <div class="fld"><label>AI · longitud MENOR de los 2 planos <span class="u">(cm)</span></label><input id="la_len" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Onda E <span class="u">(m/s o cm/s — se detecta)</span></label><input id="dia_E" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Onda A <span class="u">(m/s o cm/s — se detecta)</span></label><input id="dia_A" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>DT · tiempo de desaceleración de la E <span class="u">(ms)</span></label><input id="dia_dt" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld" style="grid-column:1/-1"><label class="chk"><input type="checkbox" id="dia_fa" onchange="calc()"> <b>Fibrilación auricular</b> u otra situación donde el algoritmo ASE no aplica (taquicardia con fusión E-A, estenosis/prótesis mitral, IM severa, calcificación anular grave, bloqueo de rama izquierda, marcapasos, trasplante)</label></div>
+    <div class="fld"><label>e′ septal <span class="u">(cm/s)</span></label><input id="dia_esep" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>e′ lateral <span class="u">(cm/s)</span></label><input id="dia_elat" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>Vol. AI indexado · LAVi <span class="u">(mL/m² — o calcúlalo abajo)</span></label><input id="dia_lavi" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>AI · área en 4 cámaras <span class="u">(cm², telesístole)</span></label><input id="la_a4" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>AI · área en 2 cámaras <span class="u">(cm², telesístole)</span></label><input id="la_a2" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+    <div class="fld"><label>AI · longitud MENOR de los 2 planos <span class="u">(cm)</span></label><input id="la_len" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
   <svg id="dopp" viewBox="0 0 320 120" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:430px;display:block;margin:12px auto 2px;background:#0a1120;border:1px solid var(--bd);border-radius:12px"></svg>
   <div style="text-align:center;color:var(--dim);font-size:.72rem;margin-bottom:8px">Doppler de llenado mitral (E · A) — el patrón cambia según los valores</div>
   <div class="out">
     <div class="res"><div class="lab">Relación E/A</div><div class="val"><span class="num" id="o_ea">—</span><span class="badge b-mut" id="b_ea">—</span></div></div>
+    <div class="res"><div class="lab">DT · desaceleración de la E <small>normal 160–240 ms</small></div><div class="val"><span class="num" id="o_dt">—</span><span class="badge b-mut" id="b_dt">—</span></div></div>
     <div class="res"><div class="lab">E/e′ promedio <small>(E×100)/e′prom · &gt;14 = presión ↑</small></div><div class="val"><span class="num" id="o_ee2">—</span><span class="badge b-mut" id="b_ee2">—</span></div></div>
     <div class="res"><div class="lab">Grado de disfunción diastólica</div><div class="val"><span class="gradebig c-mut" id="o_grade">—</span></div></div>
     <div class="res"><div class="lab">Presión de la AI estimada</div><div class="val"><span class="badge b-mut" id="b_lap">—</span></div></div>
@@ -629,8 +653,8 @@
   <div class="card gastric">
     <p class="sub">AST (área seccional del antro) por elipse. Fórmula de Perlas (validada en decúbito lateral derecho, antro a nivel de aorta/VMS).</p>
     <div class="grid two">
-      <div class="fld"><label>Diámetro antral AP <span class="u">(cm)</span></label><input id="g_ap" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-      <div class="fld"><label>Diámetro antral CC <span class="u">(cm)</span></label><input id="g_cc" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+      <div class="fld"><label>Diámetro antral AP <span class="u">(cm)</span></label><input id="g_ap" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+      <div class="fld"><label>Diámetro antral CC <span class="u">(cm)</span></label><input id="g_cc" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     </div>
     <div class="out">
       <div class="res"><div class="lab">AST · área seccional <small>π × AP × CC / 4</small></div><div class="val"><span class="num" id="o_csa">—</span></div></div>
@@ -647,10 +671,10 @@
   <div class="card vexus">
     <p class="sub">Congestión sistémica. Requiere VCI dilatada (&gt;2 cm) para graduar; luego cuenta patrones Doppler <b>severos</b> (Beaubien-Souligny 2020).</p>
     <div class="grid two">
-      <div class="fld"><label>VCI</label><select id="vx_ivc" oninput="calc()"><option value="0">≤2 cm (no dilatada)</option><option value="1">&gt;2 cm (dilatada)</option></select></div>
-      <div class="fld"><label>Vena suprahepática</label><select id="vx_hep" oninput="calc()"><option value="0">Normal (S ≥ D)</option><option value="1">Leve (S &lt; D)</option><option value="2">Severo (reversión sistólica)</option></select></div>
-      <div class="fld"><label>Vena porta (pulsatilidad)</label><select id="vx_por" oninput="calc()"><option value="0">&lt;30%</option><option value="1">30–49%</option><option value="2">≥50% (severo)</option></select></div>
-      <div class="fld"><label>Doppler venoso intrarrenal</label><select id="vx_ren" oninput="calc()"><option value="0">Continuo</option><option value="1">Bifásico</option><option value="2">Monofásico (severo)</option></select></div>
+      <div class="fld"><label>VCI</label><select id="vx_ivc" oninput="calc()"><option value="" selected>— no evaluado —</option><option value="0">≤2 cm (no dilatada)</option><option value="1">&gt;2 cm (dilatada)</option></select></div>
+      <div class="fld"><label>Vena suprahepática</label><select id="vx_hep" oninput="calc()"><option value="" selected>— no evaluado —</option><option value="0">Normal (S ≥ D)</option><option value="1">Leve (S &lt; D)</option><option value="2">Severo (reversión sistólica)</option></select></div>
+      <div class="fld"><label>Vena porta (pulsatilidad)</label><select id="vx_por" oninput="calc()"><option value="" selected>— no evaluado —</option><option value="0">&lt;30%</option><option value="1">30–49%</option><option value="2">≥50% (severo)</option></select></div>
+      <div class="fld"><label>Doppler venoso intrarrenal</label><select id="vx_ren" oninput="calc()"><option value="" selected>— no evaluado —</option><option value="0">Continuo</option><option value="1">Bifásico</option><option value="2">Monofásico (severo)</option></select></div>
     </div>
     <div class="out">
       <div class="res"><div class="lab">Grado VExUS</div><div class="val"><span class="num" id="o_vexus">—</span><span class="badge b-mut" id="b_vexus">—</span></div></div>
@@ -665,9 +689,9 @@
   <div class="card gastric">
     <p class="sub">Índices de oxigenación. FiO₂ en % (aire ambiente = 21).</p>
     <div class="grid three">
-      <div class="fld"><label>PaO₂ <span class="u">(mmHg)</span></label><input id="pao2" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-      <div class="fld"><label>SpO₂ <span class="u">(%)</span></label><input id="spo2" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-      <div class="fld"><label>FiO₂ <span class="u">(%)</span></label><input id="fio2" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+      <div class="fld"><label>PaO₂ <span class="u">(mmHg)</span></label><input id="pao2" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+      <div class="fld"><label>SpO₂ <span class="u">(%)</span></label><input id="spo2" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+      <div class="fld"><label>FiO₂ <span class="u">(%)</span></label><input id="fio2" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     </div>
     <div class="out">
       <div class="res"><div class="lab">PaFi · PaO₂/FiO₂ <small>Berlin: &gt;300 no · 200–300 leve · 100–200 mod · ≤100 severo</small></div><div class="val"><span class="num" id="o_pafi">—</span><span class="badge b-mut" id="b_pafi">—</span></div></div>
@@ -682,10 +706,10 @@
   <div class="card ao">
     <p class="sub">Zona de convergencia proximal para cuantificar una regurgitación (p. ej. IM). Baja el límite de Nyquist (~30–40 cm/s) hacia el jet.</p>
     <div class="grid two">
-      <div class="fld"><label>Radio PISA (r) <span class="u">(cm)</span></label><input id="pisa_r" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-      <div class="fld"><label>Límite de Nyquist / Valiasing <span class="u">(cm/s)</span></label><input id="pisa_va" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-      <div class="fld"><label>Vmáx del jet regurgitante <span class="u">(m/s)</span></label><input id="pisa_vmax" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
-      <div class="fld"><label>VTI del jet regurgitante <span class="u">(cm)</span></label><input id="pisa_vti" type="number" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+      <div class="fld"><label>Radio PISA (r) <span class="u">(cm)</span></label><input id="pisa_r" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+      <div class="fld"><label>Límite de Nyquist / Valiasing <span class="u">(cm/s)</span></label><input id="pisa_va" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+      <div class="fld"><label>Vmáx del jet regurgitante <span class="u">(m/s)</span></label><input id="pisa_vmax" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
+      <div class="fld"><label>VTI del jet regurgitante <span class="u">(cm)</span></label><input id="pisa_vti" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     </div>
     <div class="out">
       <div class="res"><div class="lab">ERO · orificio regurgitante efectivo <small>(2π·r²·Valiasing)/Vmáx</small></div><div class="val"><span class="num" id="o_ero">—</span><span class="badge b-mut" id="b_ero">—</span></div></div>
@@ -745,7 +769,7 @@
   <div class="pearl">⚠️ Devereux asume geometría elipsoidal y eleva al cubo: amplifica errores de 1–2 mm y sobreestima masa en VI dilatados o con hipertrofia septal asimétrica → en esos casos, eco 3D o RMC.</div>
 </div>
 
-<div id="rep-ov" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(2,5,11,.82);padding:4vh 12px;overflow:auto;backdrop-filter:blur(3px)" onclick="if(event.target===this)this.style.display='none'">
+<div id="rep-ov" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(2,5,11,.82);padding:max(4vh,env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));overflow:auto;backdrop-filter:blur(3px)" onclick="if(event.target===this)this.style.display='none'">
   <div style="max-width:640px;margin:0 auto;background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--bd);border-radius:16px;padding:16px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="font-size:1.05rem">📋 Informe ecocardiográfico</b><button class="btn" onclick="document.getElementById('rep-ov').style.display='none'">✕</button></div>
     <textarea id="rep-txt" readonly style="width:100%;height:54vh;background:#0b1220;border:1px solid var(--bd);color:var(--txt);border-radius:11px;padding:12px;font-size:.82rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.55;resize:vertical"></textarea>
@@ -762,14 +786,14 @@
    error de unidad: cm↔mm, m/s↔cm/s), NO se usa en NINGÚN cálculo y el campo se marca. */
 const RANGES={
   talla:[100,220,'cm'], peso:[20,250,'kg'], edad:[14,110,'años'], lactato:[0.2,25,'mmol/L'],
-  fc:[20,220,'lpm'], pam:[20,180,'mmHg'], pad_man:[0,30,'mmHg'],
+  fc:[20,220,'lpm'], pam:[20,180,'mmHg'], pad_man:[0,40,'mmHg'],
   lvot_d:[1.2,3.0,'cm'], lvot_vti:[5,50,'cm'], av_vti:[5,150,'cm'], av_vmax:[0.5,7,'m/s'],
   rvot_vti:[3,50,'cm'], rvot_d:[1.2,4,'cm'],
   vtr:[1.0,6.0,'m/s'], tap:[40,220,'ms'], ee_lat:[1,40,''], ee_tri:[1,40,''],
   ivsd:[0.4,2.5,'cm'], lvpwd:[0.4,2.5,'cm'], lvidd:[2.5,8,'cm'], lvidd2:[2.5,8,'cm'], lvids:[1.0,7.5,'cm'],
   edv:[20,500,'mL'], esv:[5,450,'mL'],
   tapse:[4,40,'mm'], rv_s:[3,25,'cm/s'], rv_eda:[5,60,'cm²'], rv_esa:[3,55,'cm²'],
-  rv_d:[1.5,7,'cm'], lv_bd:[1.5,8,'cm'], ra_vol:[5,300,'mL'], ra_area:[5,60,'cm²'],
+  rv_d:[15,70,'mm'], lv_bd:[15,80,'mm'], ra_vol:[5,300,'mL'], ra_area:[5,60,'cm²'],
   dpdt_lv_dt:[10,200,'ms'], dpdt_rv_dt:[10,300,'ms'],
   mpi_a:[100,900,'ms'], mpi_et:[100,500,'ms'], mpi_ivct:[10,200,'ms'], mpi_ivrt:[10,250,'ms'], mpi_et_tdi:[100,500,'ms'],
   dia_E:[0.2,2.5,'m/s'], dia_A:[0.1,2.0,'m/s'], dia_esep:[1,25,'cm/s'], dia_elat:[1,30,'cm/s'], dia_lavi:[5,120,'mL/m²'],
@@ -781,22 +805,79 @@ const RANGES={
   pp_sysmax:[40,300,'mmHg'], pp_diamax:[10,200,'mmHg'], pp_sysmin:[40,300,'mmHg'], pp_diamin:[10,200,'mmHg'],
   pp_vpp:[0,60,'%'], pp_vvs:[0,60,'%'], pp_vt6:[0,60,'%'], pp_vt8:[0,60,'%'],
   edv2:[10,500,'mL'], esv2:[5,450,'mL'],
-  la_a4:[5,60,'cm²'], la_a2:[5,60,'cm²'], la_len:[2,10,'cm']
+  la_a4:[5,60,'cm²'], la_a2:[5,60,'cm²'], la_len:[2,10,'cm'],
+  tri_E:[0.1,2.0,'m/s'], tri_e:[2,25,'cm/s'], dia_dt:[60,400,'ms'],
+  bsaman:[0.5,3.5,'m²'], rv_strain:[-45,0,'%'], g_ap:[0.5,12,'cm'], g_cc:[0.5,12,'cm'],
+  pao2:[20,600,'mmHg'], spo2:[40,100,'%'], fio2:[21,100,'%'],
+  pisa_r:[0.2,3,'cm'], pisa_va:[10,80,'cm/s'], pisa_vmax:[1,8,'m/s'], pisa_vti:[20,300,'cm']
 };
 window._BADFIELDS=[];
+function _numSan(el){
+  /* saneo estricto: con type=text el navegador ya no filtra, así que filtramos aquí */
+  const raw=(el.value||'').trim().replace(/\u00a0|\s/g,'').replace(',','.');
+  if(raw==='') return {v:NaN, malo:false, raw:''};
+  if(!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(raw)) return {v:NaN, malo:true, raw:raw};
+  const v=parseFloat(raw);
+  return {v:isFinite(v)?v:NaN, malo:!isFinite(v), raw:raw};
+}
 function num(id){
   const el=document.getElementById(id); if(!el) return NaN;
-  const v=parseFloat((el.value||'').replace(',','.'));
+  const _s=_numSan(el); const v=_s.v;
+  if(_s.malo){ el.classList.add('inp-bad'); el.title='No es un número válido';
+    const lb0=(el.closest('.fld')&&el.closest('.fld').querySelector('label'))?el.closest('.fld').querySelector('label').textContent.trim():id;
+    const _mm=lb0+': «'+_s.raw+'» no es un número — NO se usó'; if(window._BADFIELDS.indexOf(_mm)<0) window._BADFIELDS.push(_mm); return NaN; }
   if(!isFinite(v)){ el.classList.remove('inp-bad'); el.removeAttribute('title'); return NaN; }
   const r=RANGES[id];
   if(r && (v<r[0]||v>r[1])){
     el.classList.add('inp-bad');
     el.title='Fuera de rango ('+r[0]+'–'+r[1]+(r[2]?' '+r[2]:'')+') — revisa la unidad';
     const lab=(el.closest('.fld')&&el.closest('.fld').querySelector('label')) ? el.closest('.fld').querySelector('label').textContent.trim() : id;
-    window._BADFIELDS.push(lab+' ('+v+') → esperado '+r[0]+'–'+r[1]+(r[2]?' '+r[2]:''));
+    const _m=lab+' ('+v+') → esperado '+r[0]+'–'+r[1]+(r[2]?' '+r[2]:''); if(window._BADFIELDS.indexOf(_m)<0) window._BADFIELDS.push(_m);
     return NaN;                       // ← no contamina NINGÚN cálculo
   }
   el.classList.remove('inp-bad'); el.removeAttribute('title'); return v;
+}
+/* 🔁 VELOCIDADES: acepta m/s o cm/s y normaliza sola, avisando cómo lo interpretó.
+   canon='m'  → devuelve m/s  (si escribes 90 entiende 0,90 m/s)
+   canon='cm' → devuelve cm/s (si escribes 0,08 entiende 8 cm/s)              */
+function _vel(id, canon){
+  const el=document.getElementById(id); if(!el) return NaN;
+  const _sv=_numSan(el); const raw=_sv.v;
+  const fld=el.closest('.fld');
+  if(_sv.malo){ el.classList.add('inp-bad'); el.title='No es un número válido';
+    const _lb=fld&&fld.querySelector('label'); const _mv=(_lb?_lb.textContent.trim():id)+': «'+_sv.raw+'» no es un número — NO se usó';
+    if(window._BADFIELDS.indexOf(_mv)<0) window._BADFIELDS.push(_mv); return NaN; }
+  const pon=function(txt){
+    if(!fld) return;
+    let h=fld.querySelector('.uhint');
+    if(!txt){ if(h) h.remove(); el.classList.remove('u-conv'); return; }
+    if(!h){ h=document.createElement('div'); h.className='uhint'; fld.appendChild(h); }
+    h.textContent=txt; el.classList.add('u-conv');
+  };
+  if(!isFinite(raw)){ pon(''); return NaN; }
+  let v=raw, conv=false;
+  if(canon==='m'  && raw>10)            { v=raw/100; conv=true; }   // vino en cm/s
+  if(canon==='cm' && raw>0 && raw<1.6)  { v=raw*100; conv=true; }   // vino en m/s
+  pon(conv ? ('🔁 leído '+String(raw).replace('.',',')+(canon==='m'?' cm/s → ':' m/s → ')+String(Math.round(v*100)/100).replace('.',',')+(canon==='m'?' m/s':' cm/s')) : '');
+  const r=RANGES[id];                       // el rango se valida sobre el valor YA normalizado
+  if(r && (v<r[0]||v>r[1])){
+    el.classList.add('inp-bad');
+    el.title='Fuera de rango ('+r[0]+'–'+r[1]+(r[2]?' '+r[2]:'')+')';
+    const lb=fld&&fld.querySelector('label');
+    const _m2=(lb?lb.textContent.trim():id)+' ('+raw+') → esperado '+r[0]+'–'+r[1]+(r[2]?' '+r[2]:''); if(window._BADFIELDS.indexOf(_m2)<0) window._BADFIELDS.push(_m2);
+    return NaN;
+  }
+  el.classList.remove('inp-bad'); if(!conv) el.removeAttribute('title');
+  return v;
+}
+/* muestra un valor CALCULADO bajo un campo que quedó vacío (p. ej. E/e′ automático) */
+function _auto(id, txt){
+  const el=document.getElementById(id); if(!el) return;
+  const fld=el.closest('.fld'); if(!fld) return;
+  let a=fld.querySelector('.autoval');
+  if(!txt){ if(a) a.remove(); return; }
+  if(!a){ a=document.createElement('div'); a.className='autoval'; fld.appendChild(a); }
+  a.textContent=txt;
 }
 function set(id,txt,cls){ const el=document.getElementById(id); if(el){ el.textContent=txt; if(cls!==undefined){ el.className='num '+(cls||''); } } }
 function badge(id,txt,b){ const el=document.getElementById(id); if(el){ el.textContent=txt; el.className='badge '+(b||'b-mut'); } }
@@ -805,8 +886,82 @@ function syncLvidd(src){ const a=document.getElementById('lvidd'); if(a && src.v
 function _hcol(s){ return s==='bad'?'rgba(255,112,133,.22)':s==='warn'?'rgba(245,196,81,.20)':s==='ok'?'rgba(52,211,153,.17)':'rgba(148,164,189,.07)'; }
 function _hstr(s){ return s==='bad'?'#ff7085':s==='warn'?'#f5c451':s==='ok'?'#34d399':'#455873'; }
 
+/* ═════════════════ NÚCLEO DE CÁLCULO · fuente única de verdad ═════════════════
+   Cada valor derivado y cada punto de corte vive AQUÍ y en ningún otro sitio.
+   Regla: si vas a escribir «4*vtr*vtr» o «M?54:52» otra vez, llama a EC/CUT.
+   (La duplicación fue la causa real de los peores fallos: una fórmula corregida
+   en un sitio y olvidada en otro daba avisos exactamente al revés.) */
+const CUT = {
+  efH:52, efM:54,                 /* FEVI normal · ♂ ≥52 % · ♀ ≥54 % (ASE 2015) */
+  efLeve:40,                      /* <40 % = disfunción moderada-severa */
+  psapNorm:35, psapAlta:50,       /* eco: normal ≤35 · «muy elevada» >50 */
+  papmHP:20,                      /* HP si PAPm >20 (ESC/ERS 2022) */
+  papmMin:5,                      /* por debajo, la regresión del TAP no vale */
+  pcpBaja:6, pcpNormAlta:12, pcpGris:13, pcpAlta:15, pcpCong:18,
+  icBajo:2.2, icAlto:4,           /* L/min/m² */
+  coupNorm:0.6, coupSev:0.4,      /* TAPSE/PSAP */
+  tapseNorm:17,                   /* mm */
+  padAlta:15, padBaja:3,          /* mmHg */
+  pamBaja:65, lactAlto:2, vexusCong:2,
+  icNormBajo:2.5,                 /* 2,2 = umbral de shock · 2,5 = piso de NORMALIDAD */
+  efModerada:30,                  /* 30–39 % moderada · <30 % severa (ASE 2015) */
+  psapCron:60,                    /* un VD sin hipertrofia no llega agudo a >60 mmHg */
+  eeExtrap:20,                    /* por encima, Nagueh está extrapolada */
+  grad6060:60, gradITminimo:20,   /* signo 60/60 */
+  eccAlta:1.1, rvlvAlta:1,        /* excentricidad de Ryan · relación VD/VI */
+  rvWallCron:5                    /* pared del VD >5 mm → componente crónico */
+};
+const EC = {
+  cutEF:function(esMujer){ return esMujer?CUT.efM:CUT.efH; },
+  /* gradiente VD-AD por Bernoulli simplificado · VTR en m/s */
+  gradTR:function(vtr){ return (isFinite(vtr)&&vtr>0&&vtr<=8)? 4*vtr*vtr : NaN; },
+  /* PSAP = 4·VTR² + PAD */
+  psap:function(vtr,pad){ const g=EC.gradTR(vtr); return (isFinite(g)&&isFinite(pad))? g+pad : NaN; },
+  /* PAPm por tiempo de aceleración pulmonar (Mahan / Dabestani) */
+  papmRaw:function(tap){ if(!isFinite(tap)) return NaN; return tap>=120 ? (79-0.45*tap) : (90-0.62*tap); },
+  papm:function(tap){ const p=EC.papmRaw(tap); return (isFinite(p)&&p>=CUT.papmMin)? p : NaN; },
+  /* PCP por E/e′ MITRAL lateral (Nagueh) — no validada en FA */
+  pcp:function(eelat){ return (isFinite(eelat)&&eelat>0)? 1.24*eelat+1.9 : NaN; },
+  /* PAD por E/e′ TRICUSPÍDEO (Nageh) */
+  padDop:function(eetri){ return (isFinite(eetri)&&eetri>0)? 1.62*eetri+2.13 : NaN; },
+  /* área de un vaso a partir de su diámetro (TSVI, TSVD): π·D²/4 */
+  areaD:function(d){ return (isFinite(d)&&d>0)? 0.785*d*d : NaN; },
+  vs:function(area,vti){ return (isFinite(area)&&isFinite(vti))? area*vti : NaN; },
+  ic:function(area,vti,fc,bsa){ const v=EC.vs(area,vti);
+    return (isFinite(v)&&isFinite(fc)&&isFinite(bsa)&&bsa>0)? (v*fc/1000)/bsa : NaN; },
+  coup:function(tapse,psap){ return (isFinite(tapse)&&isFinite(psap)&&psap>0)? tapse/psap : NaN; },
+  /* ── semáforos: un solo criterio para el badge, el color y el corazón visual ── */
+  sPSAP:function(x){ return !isFinite(x)?'':x<=CUT.psapNorm?'ok':x<=CUT.psapAlta?'warn':'bad'; },
+  sPAPm:function(x){ return !isFinite(x)?'':x<=CUT.papmHP?'ok':'bad'; },
+  sPCP :function(x){ return !isFinite(x)?'':(x>=8&&x<=CUT.pcpNormAlta)?'ok':(x>CUT.pcpCong||x<CUT.pcpBaja)?'bad':'warn'; },
+  sIC  :function(x){ return !isFinite(x)?'':x<CUT.icBajo?'bad':x<CUT.icNormBajo?'warn':x<=CUT.icAlto?'ok':'warn'; },
+  sPAD :function(x){ return !isFinite(x)?'':x>=CUT.padAlta?'bad':x<=CUT.padBaja?'warn':'ok'; },
+  sEF  :function(x,esMujer){ return !isFinite(x)?'':x>=EC.cutEF(esMujer)?'ok':x>=CUT.efLeve?'warn':'bad'; },
+  sTAPSE:function(x){ return !isFinite(x)?'':x<CUT.tapseNorm?'bad':'ok'; },
+  /* ── signos de sobrecarga aguda del VD ── */
+  /* 60/60: TAP <60 ms + gradiente IT <60 mmHg. Con IT trivial (<20 mmHg) NO es
+     valorable. Devuelve null cuando faltan datos (≠ false = «ausente»). */
+  s6060:function(tap,vtr){ const g=EC.gradTR(vtr);
+    if(!isFinite(tap)||!isFinite(g)) return null;
+    return (tap<60 && g<CUT.grad6060 && g>=CUT.gradITminimo); },
+  /* índice de excentricidad de Ryan = diámetro PARALELO al septo ÷ PERPENDICULAR.
+     >1,1 = septo aplanado por sobrecarga de PRESIÓN del VD. El orden importa:
+     invertirlo da exactamente el diagnóstico contrario. */
+  ecc:function(dPerp,dPar){ return (isFinite(dPerp)&&isFinite(dPar)&&dPerp>0)? dPar/dPerp : NaN; },
+  eccAlta:function(dPerp,dPar){ const e=EC.ecc(dPerp,dPar); return isFinite(e)? e>CUT.eccAlta : null; },
+  /* relación VD/VI en diámetros basales (mm) · >1 = sobrecarga aguda */
+  rvlv:function(rvd,lvd){ return (isFinite(rvd)&&isFinite(lvd)&&lvd>0)? rvd/lvd : NaN; }
+};
+
 function calc(){
   window._BADFIELDS=[]; window._EFS=NaN; window._EFT=NaN;
+  /* la FA invalida el algoritmo ASE Y la ecuación E/e′→PCP: se lee UNA vez y
+     viaja a la PCP, la síntesis, el perfil de shock y las conclusiones */
+  window._TAMP_POS = false; window._VD_AGUDO_POS = false;   // se leen por bandera, NO por el texto
+  window._PCP_EXTRAP = false; window._PCP_EXTRAP_AVISO = '';
+  window._EA_SEVERA = false;
+  window._FA_ON = !!((document.getElementById('dia_fa')||{}).checked);
+  window._FA_AVISO = window._FA_ON ? ' ⚠ En FA la ecuación E/e′→PCP (Nagueh) no está validada: dato orientativo.' : '';
   const sexo=document.getElementById('sexo').value;          // H / M
   const edad=num('edad'), talla=num('talla'), peso=num('peso');
   const M = sexo==='M';
@@ -821,25 +976,37 @@ function calc(){
   } else { document.getElementById('o_imc').textContent='—'; badge('b_imc','—','b-mut'); }
 
   /* ---------- PAD ---------- */
-  const pad=(isFinite(num('pad_man'))?num('pad_man'):8);
+  const _padRaw=(document.getElementById('pad_man')||{}).value;
+  const _padOk=isFinite(num('pad_man'));
+  const pad=(_padOk?num('pad_man'):8);
+  window._PAD_DESCARTADA=(!_padOk && String(_padRaw||'').trim()!=='');
   document.getElementById('o_pad').innerHTML=f(pad,0)+'<small>mmHg</small>';
-  const eetri=num('ee_tri');
-  if(isFinite(eetri)){ const paddop=1.62*eetri+2.13; document.getElementById('o_paddop').innerHTML=f(paddop,0)+'<small>mmHg</small>'; }
-  else document.getElementById('o_paddop').textContent='—';
+  /* E/e′ TRICUSPÍDEO: si no lo escribes, se calcula con la E y la e′ del anillo tricuspídeo */
+  let eetri=num('ee_tri');
+  {
+    const tE=_vel('tri_E','m'), te=_vel('tri_e','cm');
+    if(!isFinite(eetri) && isFinite(tE) && isFinite(te) && te>0){
+      eetri=(tE*100)/te;
+      _auto('ee_tri','✅ auto: '+f(eetri,1)+'  (E '+f(tE,2)+' m/s ÷ e′ '+f(te,1)+' cm/s)');
+    } else _auto('ee_tri','');
+  }
+  { const paddop=EC.padDop(eetri);
+    if(isFinite(paddop)) document.getElementById('o_paddop').innerHTML=f(paddop,0)+'<small>mmHg</small>';
+    else document.getElementById('o_paddop').textContent='—'; }
 
   /* ---------- PSAP ---------- */
-  const vtr=num('vtr');
+  const vtr=_vel('vtr','m');
   if(isFinite(vtr) && (vtr>8 || vtr<0)){
     document.getElementById('o_grad').textContent='—';
     document.getElementById('o_psap').innerHTML='⚠'; document.getElementById('o_psap').className='num c-bad';
     badge('b_psap','VTR fuera de rango — va en m/s (2–4)','b-bad'); badge('b_hp','—','b-mut');
   } else if(isFinite(vtr)){
-    const grad=4*vtr*vtr, psap=grad+pad;
+    const grad=EC.gradTR(vtr), psap=EC.psap(vtr,pad), sPs=EC.sPSAP(psap);
     document.getElementById('o_grad').innerHTML=f(grad,0)+'<small>mmHg</small>';
     document.getElementById('o_psap').innerHTML=f(psap,0)+'<small>mmHg</small>';
-    document.getElementById('o_psap').className='num '+(psap<=35?'c-ok':psap<=45?'c-warn':'c-bad');
+    document.getElementById('o_psap').className='num c-'+sPs;
     /* NO se gradúa la HP por la PSAP (las guías lo desaconsejan): se describe la magnitud y la probabilidad va por la VTR */
-    badge('b_psap', psap<=35?'Normal':psap<=50?'Elevada':'Muy elevada', psap<=35?'b-ok':psap<=50?'b-warn':'b-bad');
+    badge('b_psap', sPs==='ok'?'Normal':sPs==='warn'?'Elevada':'Muy elevada', 'b-'+sPs);
     badge('b_hp', vtr>3.4?'Alta':(vtr>=2.9?'Intermedia':(vtr>=2.5?'Baja':'Baja')), vtr>3.4?'b-bad':(vtr>=2.9?'b-warn':'b-ok'));
   } else {
     document.getElementById('o_grad').textContent='—';
@@ -849,23 +1016,32 @@ function calc(){
   /* ---------- PAPm por TAP ---------- */
   const tap=num('tap');
   if(isFinite(tap)){
-    const papmRaw = tap>=120 ? (79-0.45*tap) : (90-0.62*tap);
-    if(papmRaw<5){                    // la regresión pierde validez con TAP muy largo (daría presiones negativas)
+    const papm=EC.papm(tap);          // NaN si la regresión pierde validez (<5 mmHg)
+    if(!isFinite(papm)){
       set('o_papm','—','num'); badge('b_papm','TAP fuera de rango útil','b-mut');
     } else {
-      const papm=papmRaw;
+      const sp=EC.sPAPm(papm);
       document.getElementById('o_papm').innerHTML=f(papm,0)+'<small>mmHg</small>';
       // ESC/ERS 2022: HP si PAPm > 20 mmHg (ya no hay zona "límite" 21–25)
-      document.getElementById('o_papm').className='num '+(papm<=20?'c-ok':'c-bad');
-      badge('b_papm', papm<=20?'Normal':'Elevada (>20 · HP, ESC/ERS 2022)', papm<=20?'b-ok':'b-bad');
+      document.getElementById('o_papm').className='num c-'+sp;
+      badge('b_papm', sp==='ok'?'Normal':'Elevada (>20 · HP, ESC/ERS 2022)', 'b-'+sp);
     }
   } else { set('o_papm','—','num'); badge('b_papm','—','b-mut'); }
 
   /* ---------- PCP ---------- */
-  const eelat=num('ee_lat');
+  /* E/e′ MITRAL lateral: si no lo escribes, sale de la onda E y la e′ lateral del módulo diastólico */
+  let eelat=num('ee_lat');
+  {
+    const mE=_vel('dia_E','m'), mel=_vel('dia_elat','cm');
+    if(!isFinite(eelat) && isFinite(mE) && isFinite(mel) && mel>0){
+      eelat=(mE*100)/mel;
+      _auto('ee_lat','✅ auto: '+f(eelat,1)+'  (E '+f(mE,2)+' m/s ÷ e′ lat '+f(mel,1)+' cm/s)');
+    } else _auto('ee_lat','');
+  }
   const nP=document.getElementById('n_pcp');
   if(isFinite(eelat)){
-    const pcp=1.24*eelat+1.9;
+    const pcp=EC.pcp(eelat);
+    window._PCP_USED=pcp; window._EELAT_USED=eelat;   // para el Corazón visual y la síntesis
     document.getElementById('o_pcp').innerHTML=f(pcp,1)+'<small>mmHg</small>';
     let txt,b,col;
     if(pcp<6){txt='Hipovolemia importante';b='b-bad';col='c-bad';}
@@ -874,18 +1050,25 @@ function calc(){
     else if(pcp<=18){txt='Zona intermedia';b='b-warn';col='c-warn';}
     else {txt='Elevada → falla VI';b='b-bad';col='c-bad';}
     document.getElementById('o_pcp').className='num '+col;
-    badge('b_pcp',txt,b);
-    nP.textContent = pcp>=13&&pcp<=18 ? 'PCP 13–18: interpretar junto con la clínica (zona gris).' : '';
-  } else { set('o_pcp','—','num'); badge('b_pcp','—','b-mut'); nP.textContent=''; }
+    if(eelat>CUT.eeExtrap){
+      window._PCP_EXTRAP=true;
+      window._PCP_EXTRAP_AVISO=' ⚠ E/e′ '+f(eelat,1)+' está muy por encima del rango en que se validó la ecuación de Nagueh: la cifra es una EXTRAPOLACIÓN — informa «muy elevada», no el número exacto.';
+    }
+    badge('b_pcp',txt+(window._FA_ON?' · ⚠ FA: poco fiable':'')+(window._PCP_EXTRAP?' · ⚠ extrapolada':''),b);
+    nP.textContent = (window._PCP_EXTRAP?window._PCP_EXTRAP_AVISO+' ':'')
+                   + (window._FA_ON?'⚠ FA marcada: la ecuación E/e′→PCP no está validada en fibrilación auricular — promedia ≥5 ciclos y trátala como orientativa. ':'')
+                   + (pcp>=CUT.pcpGris&&pcp<=CUT.pcpCong ? 'PCP 13–18: interpretar junto con la clínica (zona gris).' : '');
+  } else { set('o_pcp','—','num'); badge('b_pcp','—','b-mut'); nP.textContent=''; window._PCP_USED=NaN; window._EELAT_USED=NaN; }
 
   /* ---------- Acoplamiento TAPSE/PSAP ---------- */
   const tapse=num('tapse');
-  if(isFinite(tapse)&&isFinite(vtr)){
-    const psap=4*vtr*vtr+pad; const coup=tapse/psap;
-    document.getElementById('o_coup').innerHTML=f(coup,2)+'<small>mm/mmHg</small>';
-    document.getElementById('o_coup').className='num '+(coup>0.6?'c-ok':coup>=0.4?'c-warn':'c-bad');
-    badge('b_coup', coup>0.6?'Normal':coup>=0.4?'Disminuido':'Desacople severo', coup>0.6?'b-ok':coup>=0.4?'b-warn':'b-bad');
-  } else { set('o_coup','—','num'); badge('b_coup','—','b-mut'); }
+  { const coup=EC.coup(tapse, EC.psap(vtr,pad));
+    if(isFinite(coup)){
+      const sc=(coup>CUT.coupNorm?'ok':coup>=CUT.coupSev?'warn':'bad');
+      document.getElementById('o_coup').innerHTML=f(coup,2)+'<small>mm/mmHg</small>';
+      document.getElementById('o_coup').className='num c-'+sc;
+      badge('b_coup', sc==='ok'?'Normal':sc==='warn'?'Disminuido':'Desacople severo', 'b-'+sc);
+    } else { set('o_coup','—','num'); badge('b_coup','—','b-mut'); } }
 
   /* ---------- Masa VI (Devereux) + geometría ---------- */
   const ivsd=num('ivsd'), lvidd=num('lvidd'), lvpwd=num('lvpwd');
@@ -942,7 +1125,7 @@ function calc(){
       document.getElementById('o_fs').className='num '+(fs>=25?'c-ok':'c-bad');
       badge('b_fs', fs>=25&&fs<=45?'Normal':fs<25?'Reducida':'↑', fs>=25&&fs<=45?'b-ok':fs<25?'b-bad':'b-warn');
       const edv=7*Math.pow(lviddS,3)/(2.4+lviddS), esv=7*Math.pow(lvids,3)/(2.4+lvids);
-      const ef=(edv-esv)/edv*100; const cutEF=M?54:52; window._EFT=ef;
+      const ef=(edv-esv)/edv*100; const cutEF=EC.cutEF(M); window._EFT=ef;
       document.getElementById('o_ef').innerHTML=f(ef,0)+'<small>%</small>';
       document.getElementById('o_ef').className='num '+(ef>=cutEF?'c-ok':ef>=40?'c-warn':'c-bad');
       badge('b_ef', ef>=cutEF?'Normal':ef>=40?'Levemente ↓':ef>=30?'Moderada ↓':'Severa ↓', ef>=cutEF?'b-ok':ef>=40?'b-warn':'b-bad');
@@ -969,7 +1152,7 @@ function calc(){
   const lvotD=num('lvot_d'), lvotVti=num('lvot_vti'), fc=num('fc'), pam=num('pam'), rvotVti=num('rvot_vti');
   let sv=NaN, co=NaN;
   if(isFinite(lvotD)){
-    const area=0.785*lvotD*lvotD; document.getElementById('o_lvota').innerHTML=f(area,2)+'<small>cm²</small>';
+    const area=EC.areaD(lvotD); document.getElementById('o_lvota').innerHTML=f(area,2)+'<small>cm²</small>';
     if(isFinite(lvotVti)){ sv=area*lvotVti; document.getElementById('o_sv').innerHTML=f(sv,0)+'<small>mL</small>';
       badge('b_sv', sv>=60&&sv<=100?'Normal':sv<60?'Bajo':'Alto', sv>=60&&sv<=100?'b-ok':sv<60?'b-bad':'b-warn');
     } else { set('o_sv','—','num'); badge('b_sv','—','b-mut'); }
@@ -977,11 +1160,16 @@ function calc(){
   if(isFinite(sv)&&isFinite(fc)){ co=sv*fc/1000; document.getElementById('o_co').innerHTML=f(co,1)+'<small>L/min</small>';
     badge('b_co', co>=4&&co<=8?'Normal':co<4?'Bajo':'Alto', co>=4&&co<=8?'b-ok':co<4?'b-bad':'b-warn');
     if(isFinite(bsa)&&bsa>0){ const ci=co/bsa; document.getElementById('o_ci').innerHTML=f(ci,1)+'<small>L/min/m²</small>';
-      badge('b_ci', ci>=2.5&&ci<=4?'Normal':ci<2.5?'Bajo':'Alto', ci>=2.5&&ci<=4?'b-ok':ci<2.5?'b-bad':'b-warn');
+      const sci=EC.sIC(ci);
+      badge('b_ci', ci<CUT.icBajo?'Bajo (<2,2)':ci<CUT.icNormBajo?'Límite (2,2–2,5)':ci<=CUT.icAlto?'Normal (2,5–4)':'Alto (>4)', 'b-'+sci);
     } else { set('o_ci','—','num'); badge('b_ci','falta BSA','b-mut'); }
   } else { set('o_co','—','num'); badge('b_co','—','b-mut'); set('o_ci','—','num'); badge('b_ci','—','b-mut'); }
   if(isFinite(co)&&co>0&&isFinite(pam)){ const svr=80*(pam-pad)/co; document.getElementById('o_svr').innerHTML=f(svr,0)+'<small>dyn·s·cm⁻⁵</small>';
-    badge('b_svr', svr>=800&&svr<=1200?'Normal':svr<800?'Bajo (vasodilatado)':'Alto (vasoconstricción)', svr>=800&&svr<=1200?'b-ok':'b-warn');
+    const _ciSvr=(isFinite(bsa)&&bsa>0)?co/bsa:NaN, _rango=(svr>=800&&svr<=1200);
+    let _tS=_rango?'Normal':svr<800?'Bajo (vasodilatado)':'Alto (vasoconstricción)', _bS=_rango?'b-ok':'b-warn';
+    if(_rango && isFinite(_ciSvr) && _ciSvr<CUT.icBajo){ _tS='En rango pero INAPROPIADA para un IC de '+f(_ciSvr,1); _bS='b-warn'; }
+    if(!window._PAD_SET) _tS+=' · PAD estimada';
+    badge('b_svr', _tS, _bS);
   } else { set('o_svr','—','num'); badge('b_svr','—','b-mut'); }
   /* ESC/ERS 2022: RVP > 2 UW ya es ANORMAL (antes el corte era 3 → se quitó la zona "límite").
      Abbas solo está validada hasta ~6 UW: por encima SUBESTIMA y no debe usarse para decidir. */
@@ -1003,13 +1191,13 @@ function calc(){
     if(isFinite(edvU)&&isFinite(esvU)&&edvU>0){
       if(esvU>=edvU){ set('o_efs','—','num'); badge('b_efs','revisar: VSF ≥ VDF','b-bad'); document.getElementById('o_svs').textContent='—'; window._EFS=NaN; }
       else {
-        const efs=(edvU-esvU)/edvU*100, svs=edvU-esvU, cutEF=M?54:52;
+        const efs=(edvU-esvU)/edvU*100, svs=edvU-esvU, cutEF=EC.cutEF(M);
         window._EFS=efs;
         document.getElementById('o_efs').innerHTML=f(efs,0)+'<small>%</small>';
         document.getElementById('o_efs').className='num '+(efs>=cutEF?'c-ok':efs>=40?'c-warn':'c-bad');
         badge('b_efs', (efs>=cutEF?'Normal':efs>=40?'Levemente ↓':efs>=30?'Moderada ↓':'Severa ↓')+' · '+metodo, efs>=cutEF?'b-ok':efs>=40?'b-warn':'b-bad');
         document.getElementById('o_svs').innerHTML=f(svs,0)+'<small>mL</small>';
-        if(isFinite(bsa)&&bsa>0){ const edvi=edvU/bsa, cutV=M?74:61;
+        if(isFinite(bsa)&&bsa>0){ const edvi=edvU/bsa, cutV=M?61:74;
           document.getElementById('o_edvi').innerHTML=f(edvi,0)+'<small>mL/m²</small>';
           document.getElementById('o_edvi').className='num '+(edvi<=cutV?'c-ok':'c-bad');
           badge('b_edvi', edvi<=cutV?'Normal':'VI dilatado (>'+cutV+')', edvi<=cutV?'b-ok':'b-bad');
@@ -1039,13 +1227,31 @@ function calc(){
   }
 
   /* ---------- VExUS ---------- */
-  const vivc=parseInt(document.getElementById('vx_ivc').value), vhep=parseInt(document.getElementById('vx_hep').value), vpor=parseInt(document.getElementById('vx_por').value), vren=parseInt(document.getElementById('vx_ren').value);
-  let grado = 0;
-  if(vivc!==0){ const sev=(vhep===2?1:0)+(vpor===2?1:0)+(vren===2?1:0); grado = sev===0?1:(sev===1?2:3); }
-  document.getElementById('o_vexus').textContent='Grado '+grado;
-  document.getElementById('o_vexus').className='num '+(grado===0?'c-ok':grado>=2?'c-bad':'c-warn');
-  badge('b_vexus', grado===0?'Sin congestión':grado===1?'Congestión leve':grado===2?'Congestión moderada':'Congestión severa', grado===0?'b-ok':grado===1?'b-warn':'b-bad');
-  document.getElementById('n_vexus').textContent = vivc===0 ? 'VCI ≤2 cm → grado 0 sin importar los Doppler (no hay congestión relevante).' : 'VCI dilatada: el grado sube según cuántos Doppler estén en patrón SEVERO.';
+  /* Antes los cuatro desplegables tenían «normal» por defecto: la calculadora
+     firmaba «Grado 0 · Sin congestión» en verde sin que se hubiera mirado una sola
+     vena, y eso silenciaba además el freno de _fluidWarnings(). Un dato inventado
+     es peor que un hueco: ahora, sin exploración, no se informa nada. */
+  { const _rv=function(id){ return document.getElementById(id).value; };
+    const cIvc=_rv('vx_ivc'), cHep=_rv('vx_hep'), cPor=_rv('vx_por'), cRen=_rv('vx_ren');
+    const nV=document.getElementById('n_vexus');
+    const _off=function(nota){ set('o_vexus','—','num'); badge('b_vexus','—','b-mut'); nV.textContent=nota; };
+    if(cIvc===''){
+      _off('VExUS no explorado — no se informa. Empieza por el estado de la VCI.');
+    } else if(cIvc==='0'){
+      document.getElementById('o_vexus').textContent='Grado 0';
+      document.getElementById('o_vexus').className='num c-ok';
+      badge('b_vexus','Sin congestión','b-ok');
+      nV.textContent='VCI ≤2 cm → grado 0 sin importar los Doppler (no hay congestión venosa relevante).';
+    } else if(cHep===''||cPor===''||cRen===''){
+      _off('VCI dilatada, pero faltan Doppler venosos ('+[cHep===''?'suprahepática':'',cPor===''?'porta':'',cRen===''?'intrarrenal':''].filter(Boolean).join(', ')+'): el grado 1–3 NO es calculable y sin ellos se SUBESTIMA la congestión.');
+    } else {
+      const sev=(cHep==='2'?1:0)+(cPor==='2'?1:0)+(cRen==='2'?1:0);
+      const grado = sev===0?1:(sev===1?2:3);
+      document.getElementById('o_vexus').textContent='Grado '+grado;
+      document.getElementById('o_vexus').className='num '+(grado>=2?'c-bad':'c-warn');
+      badge('b_vexus', grado===1?'Congestión leve':grado===2?'Congestión moderada':'Congestión severa', grado===1?'b-warn':'b-bad');
+      nV.textContent='VCI dilatada con '+sev+' de 3 Doppler en patrón SEVERO → grado '+grado+'.';
+    } }
 
   /* ---------- Oxigenación ---------- */
   const pao2=num('pao2'), spo2=num('spo2'), fio2=num('fio2');
@@ -1059,8 +1265,8 @@ function calc(){
   } else { set('o_safi','—','num'); badge('b_safi','—','b-mut'); }
 
   /* ---------- Válvula aórtica (continuidad) y Qp/Qs ---------- */
-  const avVmax=num('av_vmax'), avVti=num('av_vti'), rvotD=num('rvot_d');
-  const areaLVOT = isFinite(lvotD)? 0.785*lvotD*lvotD : NaN;
+  const avVmax=_vel('av_vmax','m'), avVti=num('av_vti'), rvotD=num('rvot_d');
+  const areaLVOT = EC.areaD(lvotD);
   if(isFinite(areaLVOT)&&isFinite(lvotVti)&&isFinite(avVti)&&avVti>0){
     const ava=(areaLVOT*lvotVti)/avVti;
     document.getElementById('o_ava').innerHTML=f(ava,2)+'<small>cm²</small>';
@@ -1091,17 +1297,18 @@ function calc(){
       if(isFinite(gmed)&&gmed>=40){ txt='EA severa de alto gradiente (AVA <1 + gradiente medio ≥40) — concordante'; cls='b-bad'; }
       else if(isFinite(gmed)&&gmed<40){
         if(isFinite(svi)&&svi<35){
-          if(isFinite(efA)&&efA<50){ txt='EA de BAJO FLUJO–BAJO GRADIENTE clásica (FEVI <50%) → eco de estrés con dobutamina para separar EA verdadera de pseudosevera'; cls='b-bad'; }
+          if(isFinite(efA)&&efA<50){ txt='EA de BAJO FLUJO–BAJO GRADIENTE clásica (FEVI <50%) → eco de estrés con dobutamina para separar EA verdadera de pseudosevera, PERO solo con el paciente estabilizado: en shock o congestión aguda la dobutamina es peligrosa, primero compensa'; cls='b-bad'; }
           else { txt='EA de BAJO FLUJO–BAJO GRADIENTE paradójica (FEVI conservada) → confirmar con score de calcio por TC; descartar error de medida del TSVI'; cls='b-bad'; }
         } else if(isFinite(svi)) txt='Gradiente bajo con FLUJO NORMAL → probablemente EA moderada (discordancia por área pequeña); revisar medición del TSVI', cls='b-warn';
         else { txt='AVA <1 con gradiente medio <40 → falta VSi (BSA + TSVI) para clasificar el flujo'; cls='b-warn'; }
       } else { txt='AVA <1 cm² — introduce el gradiente MEDIO para clasificar (severa si ≥40)'; cls='b-warn'; }
     } else if(isFinite(avaV)) { txt='AVA ≥1 cm² — no cumple criterio de severidad por área'; cls='b-ok'; }
+    window._EA_SEVERA = !!(isFinite(avaV) && avaV<1.0);
     document.getElementById('o_eaflow').textContent = txt || '—';
     badge('b_eaflow', txt? (cls==='b-bad'?'Revisar':cls==='b-warn'?'Discordante':'No severa') : '—', cls);
   }
   if(isFinite(rvotD)&&isFinite(rvotVti)&&isFinite(areaLVOT)&&isFinite(lvotVti)){
-    const qp=0.785*rvotD*rvotD*rvotVti, qs=areaLVOT*lvotVti;
+    const qp=EC.areaD(rvotD)*rvotVti, qs=EC.vs(areaLVOT,lvotVti);
     if(qs>0){ const ratio=qp/qs; document.getElementById('o_qpqs').textContent=f(ratio,2);
       document.getElementById('o_qpqs').className='num '+((ratio>=0.8&&ratio<=1.2)?'c-ok':'c-warn');
       badge('b_qpqs', ratio>=1.5?'Shunt I→D signif.':ratio>1.2?'Shunt I→D':ratio<0.8?'Shunt D→I':'Sin shunt neto', (ratio>=1.5||ratio<0.8)?'b-bad':ratio>1.2?'b-warn':'b-ok');
@@ -1123,7 +1330,7 @@ function calc(){
 
   /* ---------- 🫀 VD y AD ---------- */
   {
-    const sPr=num('rv_s'), eda=num('rv_eda'), esa=num('rv_esa'), rvd=num('rv_d'), lvbd=num('lv_bd'), ravol=num('ra_vol'), raarea=num('ra_area'), rvstr=num('rv_strain'), tapse2=num('tapse');
+    const sPr=_vel('rv_s','cm'), eda=num('rv_eda'), esa=num('rv_esa'), rvd=num('rv_d'), lvbd=num('lv_bd'), ravol=num('ra_vol'), raarea=num('ra_area'), rvstr=num('rv_strain'), tapse2=num('tapse');
     if(isFinite(sPr)){ document.getElementById('o_rvs').innerHTML=f(sPr,1)+'<small>cm/s</small>'; document.getElementById('o_rvs').className='num '+(sPr>=9.5?'c-ok':'c-bad'); badge('b_rvs', sPr>=9.5?'Normal':'Reducida', sPr>=9.5?'b-ok':'b-bad'); } else { set('o_rvs','—','num'); badge('b_rvs','—','b-mut'); }
     let fac=NaN;
     if(isFinite(eda)&&isFinite(esa)&&eda>0){ fac=(eda-esa)/eda*100; document.getElementById('o_fac').innerHTML=f(fac,0)+'<small>%</small>'; document.getElementById('o_fac').className='num '+(fac>=35?'c-ok':'c-bad'); badge('b_fac', fac>=35?'Normal':'Reducida', fac>=35?'b-ok':'b-bad'); } else { set('o_fac','—','num'); badge('b_fac','—','b-mut'); }
@@ -1131,10 +1338,10 @@ function calc(){
     if(isFinite(rvd)){ document.getElementById('o_rvd').innerHTML=f(rvd,0)+'<small>mm</small>'; document.getElementById('o_rvd').className='num '+(rvd<=41?'c-ok':'c-bad'); badge('b_rvd', rvd<=41?'Normal':'Dilatado', rvd<=41?'b-ok':'b-bad'); } else { set('o_rvd','—','num'); badge('b_rvd','—','b-mut'); }
     if(isFinite(rvd)&&isFinite(lvbd)&&lvbd>0){ const r=rvd/lvbd; document.getElementById('o_rvlv').textContent=f(r,2); document.getElementById('o_rvlv').className='num '+(r<0.6?'c-ok':r<=1?'c-warn':'c-bad'); badge('b_rvlv', r<0.6?'Normal':r<=1?'Aumentada':'Sobrecarga aguda', r<0.6?'b-ok':r<=1?'b-warn':'b-bad'); } else { set('o_rvlv','—','num'); badge('b_rvlv','—','b-mut'); }
     /* AD: el corte NO es 34 (ese es el de la AI). ASE 2015 · aurícula DERECHA: ≤39 mL/m² varón · ≤33 mL/m² mujer */
-    if(isFinite(ravol)&&isFinite(bsa)&&bsa>0){ const ravi=ravol/bsa, cutRA=M?39:33; const okRA=ravi<=cutRA;
+    if(isFinite(ravol)&&isFinite(bsa)&&bsa>0){ const ravi=ravol/bsa, cutRA=M?33:39; const okRA=ravi<=cutRA;
       document.getElementById('o_ravi').innerHTML=f(ravi,0)+'<small>mL/m²</small>';
       document.getElementById('o_ravi').className='num '+(okRA?'c-ok':'c-bad');
-      badge('b_ravi', (okRA?'Normal':'Dilatada')+' (corte ≤'+cutRA+', '+(M?'varón':'mujer')+')', okRA?'b-ok':'b-bad');
+      badge('b_ravi', (okRA?'Normal':'Dilatada')+' (corte ≤'+cutRA+', '+(M?'mujer':'varón')+')', okRA?'b-ok':'b-bad');
     } else { set('o_ravi','—','num'); badge('b_ravi', isFinite(ravol)?'falta BSA':'—','b-mut'); }
     if(isFinite(raarea)){ document.getElementById('o_raarea').innerHTML=f(raarea,1)+'<small>cm²</small>'; document.getElementById('o_raarea').className='num '+(raarea<18?'c-ok':'c-bad'); badge('b_raarea', raarea<18?'Normal':'Dilatada', raarea<18?'b-ok':'b-bad'); } else { set('o_raarea','—','num'); badge('b_raarea','—','b-mut'); }
     if(isFinite(rvstr)){ document.getElementById('o_rvstr').innerHTML=f(rvstr,1)+'<small>%</small>'; const okS=rvstr<=-20; document.getElementById('o_rvstr').className='num '+(okS?'c-ok':'c-bad'); badge('b_rvstr', okS?'Normal':'Reducido', okS?'b-ok':'b-bad'); } else { set('o_rvstr','—','num'); badge('b_rvstr','—','b-mut'); }
@@ -1192,7 +1399,7 @@ function calc(){
 
   /* ---------- 🌊 Función diastólica (ASE 2016) + Doppler ---------- */
   {
-    const E=num('dia_E'), A=num('dia_A'), es=num('dia_esep'), el=num('dia_elat'), trv=num('vtr');
+    const E=_vel('dia_E','m'), A=_vel('dia_A','m'), es=_vel('dia_esep','cm'), el=_vel('dia_elat','cm'), trv=_vel('vtr','m');
     /* si no escribiste el LAVi a mano, se usa el que sale del biplano área-longitud */
     const lavi = isFinite(num('dia_lavi')) ? num('dia_lavi') : (isFinite(window._LAVI_CALC) ? window._LAVI_CALC : NaN);
     (function(){
@@ -1214,6 +1421,17 @@ function calc(){
     if(isFinite(ea)){ document.getElementById('o_ea').textContent=f(ea,2);
       badge('b_ea', ea<0.8?'≤0,8':ea>2?'≥2':'0,8–2', ea<0.8?'b-warn':ea>2?'b-bad':'b-ok');
     } else { set('o_ea','—','num'); badge('b_ea','—','b-mut'); }
+    /* DT — tiempo de desaceleración de la onda E */
+    {
+      const dt=num('dia_dt');
+      if(isFinite(dt)){
+        const corto=dt<160, largo=dt>240;
+        document.getElementById('o_dt').innerHTML=f(dt,0)+'<small>ms</small>';
+        document.getElementById('o_dt').className='num '+(corto?'c-bad':largo?'c-warn':'c-ok');
+        badge('b_dt', corto?'Corto (<160) — llenado restrictivo, presión ↑':largo?'Largo (>240) — relajación alterada':'Normal (160–240)',
+              corto?'b-bad':largo?'b-warn':'b-ok');
+      } else { set('o_dt','—','num'); badge('b_dt','—','b-mut'); }
+    }
     const eAvg=(isFinite(es)&&isFinite(el))?(es+el)/2:(isFinite(es)?es:(isFinite(el)?el:NaN));
     const Ee=(isFinite(E)&&isFinite(eAvg)&&eAvg>0)?(E*100)/eAvg:NaN;
     /* ASE 2016: el corte depende del anillo medido → promedio >14 · SOLO septal >15 · SOLO lateral >13 */
@@ -1228,6 +1446,7 @@ function calc(){
     const c_ep = (isFinite(es)||isFinite(el))? ((isFinite(es)&&es<7)||(isFinite(el)&&el<10)) : null;
     const c_tr = isFinite(trv)? trv>2.8 : null;
     const c_la = isFinite(lavi)? lavi>34 : null;
+    const enFA=(document.getElementById('dia_fa')||{}).checked;
     const chips=[['E/e′>14',c_ee],['e′ ↓',c_ep],['IT>2,8',c_tr],['LAVi>34',c_la]];
     document.getElementById('dia_crit').innerHTML = chips.map(function(ch){ const v=ch[1]; return '<span class="chip '+(v===true?'pos':v===false?'neg':'')+'">'+ch[0]+': '+(v===true?'+':v===false?'−':'—')+'</span>'; }).join('');
     const lapCrit=[c_ee,c_tr,c_la]; const pos=lapCrit.filter(function(x){return x===true;}).length, neg=lapCrit.filter(function(x){return x===false;}).length, av=pos+neg;
@@ -1235,13 +1454,13 @@ function calc(){
     /* ASE 2016 · ALGORITMO 1 — con FEVI normal primero hay que decidir SI existe disfunción
        (4 criterios: E/e′ prom >14 · e′ sep <7 o lat <10 · IT >2,8 · LAVi >34).
        <50% positivos = NORMAL · 50% = indeterminado · >50% = disfunción → graduar (algoritmo 2). */
-    const _EFd=_efFinal().v, _cutD=M?54:52;
+    const _EFd=_efFinal().v, _cutD=EC.cutEF(M);
     const c4=[c_ee,c_ep,c_tr,c_la];
     const p4=c4.filter(function(x){return x===true;}).length, n4=c4.filter(function(x){return x===false;}).length, a4=p4+n4;
     let diaDone=false;
     if(isFinite(_EFd) && _EFd>=_cutD && a4>=2){
       if(p4/a4 < 0.5){ grade='Función diastólica NORMAL'; gcls='c-ok'; lapTxt='Normal'; lapB='b-ok'; diaDone=true; }
-      else if(p4/a4 === 0.5){ grade='Indeterminado (2 de 4 criterios +)'; lapTxt='Indeterminada'; diaDone=true; }
+      else if(p4/a4 === 0.5){ grade='Indeterminado ('+p4+' de '+a4+' criterios evaluables +'+(a4<4?' · '+(4-a4)+' sin medir':'')+')'; lapTxt='Indeterminada'; diaDone=true; }
     }
     if(diaDone){ /* resuelto por el algoritmo 1 */ }
     else if(isFinite(ea)){
@@ -1256,6 +1475,15 @@ function calc(){
       else if(neg>pos){ grade='Presión AI probablemente normal'; gcls='c-ok'; lapTxt='Normal'; lapB='b-ok'; }
       else { grade='Indeterminado'; lapTxt='Indeterminada'; }
     }
+    if(enFA){   /* en FA el algoritmo ASE no aplica: se informa con los parámetros que sí sirven */
+      grade='No aplicable (FA / situación excluida)'; gcls='c-warn';
+      const apoyo=[];
+      if(isFinite(Ee)&&Ee>11) apoyo.push('E/e′ '+f(Ee,1)+' (>11 sugiere presión ↑ en FA)');
+      if(isFinite(trv)&&trv>2.8) apoyo.push('IT >2,8 m/s');
+      const _dtFA=num('dia_dt'); if(isFinite(_dtFA)&&_dtFA<160) apoyo.push('DT <160 ms');
+      lapTxt = apoyo.length? ('Probablemente ELEVADA — '+apoyo.join(' · ')) : 'No estimable con el algoritmo ASE';
+      lapB = apoyo.length? 'b-bad' : 'b-mut';
+    }
     const go=document.getElementById('o_grade'); go.textContent=grade||'—'; go.className='gradebig '+gcls;
     badge('b_lap', lapTxt||'—', lapB);
   }
@@ -1263,22 +1491,21 @@ function calc(){
   /* ---------- 🧠 Síntesis hemodinámica integrada ---------- */
   {
     const padS=(isFinite(num('pad_man'))?num('pad_man'):8);
-    const vtrS=num('vtr'), tapS=num('tap'), eelatS=num('ee_lat'), tapseS=num('tapse');
-    const psapS = isFinite(vtrS)? 4*vtrS*vtrS+padS : NaN;
-    const papmS = isFinite(tapS)? (tapS>=120?79-0.45*tapS:90-0.62*tapS) : NaN;
-    const pcpS  = isFinite(eelatS)? 1.24*eelatS+1.9 : NaN;
-    const coupS = (isFinite(tapseS)&&isFinite(psapS)&&psapS>0)? tapseS/psapS : NaN;
-    const areaL = isFinite(lvotD)? 0.785*lvotD*lvotD : NaN;
-    let icS=NaN;
-    if(isFinite(areaL)&&isFinite(lvotVti)&&isFinite(fc)&&isFinite(bsa)&&bsa>0){ icS=(areaL*lvotVti*fc/1000)/bsa; }
+    const vtrS=_vel('vtr','m'), tapS=num('tap'), eelatS=(isFinite(window._EELAT_USED)?window._EELAT_USED:num('ee_lat')), tapseS=num('tapse');
+    const psapS = EC.psap(vtrS,padS);
+    const papmS = EC.papm(tapS);
+    const pcpS  = EC.pcp(eelatS);
+    const coupS = EC.coup(tapseS,psapS);
+    const areaL = EC.areaD(lvotD);
+    const icS   = EC.ic(areaL,lvotVti,fc,bsa);
 
     // --- mapa del circuito ---
     const P=[];
-    P.push({pl:'PAD',            v:isFinite(padS)?String(padS):'—',                    c:isFinite(padS)?(padS>=15?'bad':padS<=3?'warn':'ok'):''});
-    P.push({pl:'VD·TAPSE',       v:isFinite(tapseS)?f(tapseS,0)+'mm':'—',              c:isFinite(tapseS)?(tapseS<17?'bad':'ok'):''});
-    P.push({pl:'AP·PSAP',        v:isFinite(psapS)?f(psapS,0):'—',                     c:isFinite(psapS)?(psapS<=35?'ok':psapS<=50?'warn':'bad'):''});
-    P.push({pl:'Capilar·PCP',    v:isFinite(pcpS)?f(pcpS,0):'—',                       c:isFinite(pcpS)?((pcpS>=8&&pcpS<=12)?'ok':(pcpS>18||pcpS<6)?'bad':'warn'):''});
-    P.push({pl:'VI·IC',          v:isFinite(icS)?f(icS,1):'—',                         c:isFinite(icS)?((icS>=2.2&&icS<=4)?'ok':icS<2.2?'bad':'warn'):''});
+    P.push({pl:'PAD',            v:isFinite(padS)?String(padS):'—',        c:EC.sPAD(padS)});
+    P.push({pl:'VD·TAPSE',       v:isFinite(tapseS)?f(tapseS,0)+'mm':'—',  c:EC.sTAPSE(tapseS)});
+    P.push({pl:'AP·PSAP',        v:isFinite(psapS)?f(psapS,0):'—',         c:EC.sPSAP(psapS)});
+    P.push({pl:'Capilar·PCP',    v:isFinite(pcpS)?f(pcpS,0):'—',           c:EC.sPCP(pcpS)});
+    P.push({pl:'VI·IC',          v:isFinite(icS)?f(icS,1):'—',             c:EC.sIC(icS)});
     document.getElementById('circuit').innerHTML =
       P.map((p,i)=>'<div class="pill '+p.c+'"><div class="pl">'+p.pl+'</div><div class="pv">'+p.v+'</div></div>'+(i<P.length-1?'<div class="arrow">→</div>':'')).join('');
 
@@ -1289,27 +1516,31 @@ function calc(){
       else if(pcpS>=13) F.push(['warn','PCP en zona gris ('+f(pcpS,0)+') — integrar con la clínica.']);
       else if(pcpS<6) F.push(['warn','Precarga izquierda muy baja (PCP '+f(pcpS,1)+').']);
     }
-    const hp = (isFinite(psapS)&&psapS>35) || (isFinite(papmS)&&papmS>20);
+    if(window._FA_ON && isFinite(icS)) F.push(['info','⚠ FA: el VTI del TSVI —y con él el VS, el IC y el VSi— tiene que ser el PROMEDIO de 3–5 ciclos consecutivos; evita los latidos post-pausa y post-extrasistólicos.']);
+    if(window._FA_ON && isFinite(pcpS)) F.push(['warn','⚠ FIBRILACIÓN AURICULAR marcada: la PCP de arriba ('+f(pcpS,0)+' mmHg) sale de E/e′ y esa ecuación NO está validada en FA — no decidas solo con ella; apóyate en la VCI/PAD, el DT y la clínica.']);
+    const hp = (isFinite(psapS)&&psapS>CUT.psapNorm) || (isFinite(papmS)&&papmS>CUT.papmHP);
     if(hp){
-      if(isFinite(pcpS)&&pcpS>15) F.push(['bad','Hipertensión pulmonar POSCAPILAR (grupo 2, cardiopatía izquierda) — PCP '+f(pcpS,0)+' >15.']);
-      else if(isFinite(pcpS)) F.push(['warn','Hipertensión pulmonar PRECAPILAR probable (PCP '+f(pcpS,0)+' ≤15) — evaluar grupos 1/3/4 (SDRA, TEP, HAP).']);
+      if(isFinite(pcpS)&&pcpS>CUT.pcpAlta) F.push(['bad','Hipertensión pulmonar de perfil probablemente POSCAPILAR (grupo 2, cardiopatía izquierda) — PCP estimada '+f(pcpS,0)+' >15. La PCP sale de E/e′, no de un catéter: el grupo definitivo exige hemodinamia invasiva.'+(window._PCP_EXTRAP?window._PCP_EXTRAP_AVISO:'')]);
+      else if(isFinite(pcpS)) F.push(['warn','Hipertensión pulmonar de perfil probablemente PRECAPILAR (PCP estimada '+f(pcpS,0)+' ≤15) — evaluar grupos 1/3/4 (SDRA, TEP, HAP). Ojo: la PCP viene de UN solo E/e′; si es limítrofe, la reclasificación a poscapilar es frecuente.']);
       else F.push(['warn','Hipertensión pulmonar (PSAP '+f(psapS,0)+') — mide E/E′ lateral para clasificar pre/poscapilar.']);
     }
-    if(isFinite(coupS) && coupS<0.6) F.push(['bad','Desacople VD-AP (TAPSE/PSAP '+f(coupS,2)+' <0,6) → el VD no tolera la poscarga.']);
-    else if(isFinite(tapseS) && tapseS<17) F.push(['warn','TAPSE '+f(tapseS,0)+' mm → función sistólica del VD reducida.']);
-    if(isFinite(icS)){ if(icS<2.2) F.push(['bad','Bajo gasto cardíaco (IC '+f(icS,1)+' L/min/m²).']); else if(icS>4) F.push(['warn','Estado hiperdinámico (IC '+f(icS,1)+').']); }
-    if(isFinite(padS)){ if(padS>=15) F.push(['warn','PAD ~15 → congestión venosa sistémica / precarga derecha alta (correlaciona con VExUS).']); else if(padS<=3) F.push(['info','PAD ~3 → precarga derecha baja; con bajo gasto, considera hipovolemia.']); }
+    if(isFinite(coupS) && coupS<CUT.coupNorm) F.push(['bad','Desacople VD-AP (TAPSE/PSAP '+f(coupS,2)+' <0,6) → el VD no tolera la poscarga.']);
+    else if(isFinite(tapseS) && tapseS<CUT.tapseNorm) F.push(['warn','TAPSE '+f(tapseS,0)+' mm → función sistólica del VD reducida.']);
+    if(isFinite(icS)){ if(icS<CUT.icBajo) F.push(['bad','Bajo gasto cardíaco (IC '+f(icS,1)+' L/min/m²).']);
+      else if(icS<CUT.icNormBajo) F.push(['warn','Índice cardíaco en el LÍMITE (IC '+f(icS,1)+' · zona 2,2–2,5): si hay hipoperfusión, trátalo como bajo gasto.']);
+      else if(icS>CUT.icAlto) F.push(['warn','Estado hiperdinámico (IC '+f(icS,1)+').']); }
+    if(isFinite(padS)){ if(padS>=CUT.padAlta) F.push(['warn','PAD ~15 → congestión venosa sistémica / precarga derecha alta (correlaciona con VExUS).']); else if(padS<=3) F.push(['info','PAD ~3 → precarga derecha baja; con bajo gasto, considera hipovolemia.']); }
     document.getElementById('synth_list').innerHTML = F.map(x=>'<div class="si '+x[0]+'">'+ (x[0]==='bad'?'🔴 ':x[0]==='warn'?'🟡 ':'🔵 ') + x[1] +'</div>').join('');
 
     // --- fenotipo ---
     const ph=document.getElementById('synth_pheno');
-    const congL=isFinite(pcpS)&&pcpS>18, congR=isFinite(padS)&&padS>=15, lowFlow=isFinite(icS)&&icS<2.2,
-          rvFail=isFinite(coupS)&&coupS<0.6, preCap=hp&&isFinite(pcpS)&&pcpS<=15, anyData=isFinite(pcpS)||isFinite(psapS)||isFinite(icS)||isFinite(tapseS);
+    const congL=isFinite(pcpS)&&pcpS>CUT.pcpCong, congR=isFinite(padS)&&padS>=CUT.padAlta, lowFlow=isFinite(icS)&&icS<CUT.icBajo,
+          rvFail=isFinite(coupS)&&coupS<CUT.coupNorm, preCap=hp&&isFinite(pcpS)&&pcpS<=CUT.pcpAlta, anyData=isFinite(pcpS)||isFinite(psapS)||isFinite(icS)||isFinite(tapseS);
     let head='';
     if(congL&&isFinite(pcpS)&&pcpS>15&&hp) head='Insuficiencia cardíaca izquierda con congestión pulmonar e HP poscapilar'+(congR?' + congestión sistémica (biventricular)':'')+(lowFlow?' · perfil frío-húmedo (bajo gasto)':'');
     else if(preCap&&rvFail) head='HP precapilar con disfunción/desacople del VD — patrón cor pulmonale';
     else if(preCap) head='Hipertensión pulmonar precapilar — evaluar SDRA / TEP / HAP';
-    else if(lowFlow) head='Bajo gasto cardíaco'+(congL?' con congestión izquierda':'')+(congR?' y sistémica':'');
+    else if(lowFlow) head='Bajo gasto cardíaco'+((congL&&congR)?' con congestión izquierda y sistémica':congL?' con congestión izquierda':congR?' con congestión sistémica (derecha)':'');
     else if(congL) head='Congestión izquierda (presiones de llenado elevadas)';
     else if(isFinite(padS)&&padS<=3&&isFinite(icS)&&icS>=2.2) head='Precarga derecha baja — perfil compatible con hipovolemia';
     else if(anyData) head='Sin alteraciones mayores en los parámetros hemodinámicos ingresados';
@@ -1322,32 +1553,44 @@ function calc(){
     const pamV=num('pam'), lact=num('lactato');
     const padGiven=!!window._PAD_SET && isFinite(num('pad_man'));   // solo cuenta si TÚ la fijaste (VCI/Doppler/manual)
     const padS=(isFinite(num('pad_man'))?num('pad_man'):8);
-    const vtrS=num('vtr'), eelatS=num('ee_lat');
-    const psapS=isFinite(vtrS)?4*vtrS*vtrS+padS:NaN;
-    const pcpS=isFinite(eelatS)?1.24*eelatS+1.9:NaN;
-    const areaL=isFinite(lvotD)?0.785*lvotD*lvotD:NaN;
-    let icS=NaN; if(isFinite(areaL)&&isFinite(lvotVti)&&isFinite(fc)&&isFinite(bsa)&&bsa>0) icS=(areaL*lvotVti*fc/1000)/bsa;
-    const wet = (isFinite(pcpS)&&pcpS>18) || (padGiven&&padS>=15);
+    const vtrS=_vel('vtr','m'), eelatS=(isFinite(window._EELAT_USED)?window._EELAT_USED:num('ee_lat'));
+    const psapS=EC.psap(vtrS,padS);
+    const pcpS=EC.pcp(eelatS);
+    const icS=EC.ic(EC.areaD(lvotD),lvotVti,fc,bsa);
+    const wet = (isFinite(pcpS)&&pcpS>CUT.pcpCong) || (padGiven&&padS>=CUT.padAlta);
     // si el índice cardíaco está MEDIDO, manda él; el lactato solo decide cuando no hay IC
-    const cold = isFinite(icS) ? (icS<2.2 || (icS<2.5 && isFinite(lact) && lact>2)) : (isFinite(lact)&&lact>2);
+    const cold = isFinite(icS) ? (icS<CUT.icBajo || (icS<2.5 && isFinite(lact) && lact>CUT.lactAlto)) : (isFinite(lact)&&lact>CUT.lactAlto);
     const congKnown = isFinite(pcpS)||padGiven, perfKnown = isFinite(icS)||isFinite(lact);
     ['sq_A','sq_B','sq_C','sq_L'].forEach(function(id){ document.getElementById(id).classList.remove('on'); });
     const sp=document.getElementById('shock_profile'); const L=[];
     if(congKnown && perfKnown){
       let cell, prof;
-      if(!wet && !cold){ cell='sq_A'; prof='Perfil A (caliente-seco) — hemodinamia compensada'; L.push(['ok','Sin congestión ni hipoperfusión por estos parámetros. Vigilancia y tratar la causa de base.']); }
-      else if(wet && !cold){ cell='sq_B'; prof='Perfil B (caliente-húmedo) — congestión con perfusión conservada'; L.push(['warn','Congestión con gasto adecuado → descongestionar: diurético de asa ± vasodilatador (bajar precarga/poscarga). Meta: euvolemia sin comprometer la perfusión.']); }
-      else if(wet && cold){ cell='sq_C'; prof='Perfil C (frío-húmedo) — congestión + hipoperfusión (el más grave)'; L.push(['bad','Bajo gasto con congestión → soporte inotrópico/inodilatador + descongestión CAUTELOSA; vasopresor si PAM baja. Reevaluar respuesta; si refractario, valorar soporte circulatorio mecánico.']); }
-      else { cell='sq_L'; prof='Perfil L (frío-seco) — hipoperfusión sin congestión'; L.push(['warn','Hipoperfusión sin congestión → si es respondedor a volumen, reto de fluidos; si no responde, inotrópico. Descartar hipovolemia.']); }
+      const hipoperf=(isFinite(pamV)&&pamV<CUT.pamBaja)||(isFinite(lact)&&lact>CUT.lactAlto);
+      if(!wet && !cold){ cell='sq_A';
+        prof = hipoperf ? 'Perfil A por llenado, PERO con hipoperfusión (PAM baja y/o lactato ↑) → sugiere shock DISTRIBUTIVO/vasopléjico: NO es una hemodinamia compensada'
+                        : 'Perfil A (caliente-seco) — hemodinamia compensada'; L.push([hipoperf?'bad':'ok', hipoperf? 'Gasto y llenado adecuados pero hay hipoperfusión: piensa en shock distributivo (séptico) — vasopresor para la PAM, controlar el foco y reevaluar; el problema NO es la bomba ni la precarga.' : 'Sin congestión ni hipoperfusión por estos parámetros. Vigilancia y tratar la causa de base.']); }
+      else if(wet && !cold){ cell='sq_B'; prof='Perfil B (caliente-húmedo) — congestión con perfusión conservada';
+        L.push(['warn','Congestión con gasto adecuado → descongestionar: diurético de asa ± vasodilatador (bajar precarga/poscarga). Meta: euvolemia sin comprometer la perfusión.']);
+        if(window._FA_ON && isFinite(fc) && fc>110) L.push(['warn','⚠ FA con FC '+f(fc,0)+' lpm: la respuesta ventricular rápida puede ser a la vez precipitante y consecuencia de la congestión — el control de frecuencia forma parte del tratamiento, no es un detalle.']); }
+      else if(wet && cold){ cell='sq_C'; prof='Perfil C (frío-húmedo) — congestión + hipoperfusión (el más grave)';
+        L.push(['bad','Bajo gasto con congestión → '
+          +((isFinite(pamV)&&pamV<CUT.pamBaja)?'PRIMERO restaura la presión de perfusión con vasopresor (PAM '+f(pamV,0)+' <65); con la PAM sostenida, añade ':'')
+          +'soporte inotrópico —el inodilatador SOLO si la PAM lo tolera, porque baja las resistencias— y descongestión CAUTELOSA. Reevaluar respuesta; si es refractario, valorar soporte circulatorio mecánico.']); }
+      else { cell='sq_L'; prof='Perfil L (frío-seco) — hipoperfusión sin congestión';
+        L.push(['warn','Hipoperfusión sin congestión → si es respondedor a volumen, reto de fluidos; si no responde, inotrópico.'
+          +((isFinite(pamV)&&pamV<CUT.pamBaja)?' Con PAM '+f(pamV,0)+' <65 el vasopresor va EN PARALELO al volumen, no después.':'')]); }
       document.getElementById(cell).classList.add('on');
       let tipo='';
-      if(cold && isFinite(pcpS) && pcpS>18) tipo='cardiogénico (bajo gasto + presiones de llenado altas)';
-      else if(cold && isFinite(padS) && padS>=15 && isFinite(psapS) && psapS>50) tipo='obstructivo / falla del VD (TEP, taponamiento) — congestión derecha con PSAP alta';
+      if(cold && isFinite(pcpS) && pcpS>CUT.pcpCong) tipo='cardiogénico (bajo gasto + presiones de llenado altas)';
+      else if(cold && isFinite(padS) && padS>=CUT.padAlta && isFinite(psapS) && psapS>CUT.psapAlta) tipo='obstructivo / falla del VD (TEP, taponamiento) — congestión derecha con PSAP alta';
       else if(cold && isFinite(pcpS) && pcpS<8 && isFinite(padS) && padS<=8) tipo='hipovolémico (bajo gasto + presiones de llenado bajas)';
-      else if(isFinite(pamV) && pamV<65 && isFinite(icS) && icS>=2.5) tipo='distributivo / vasopléjico (PAM baja con gasto conservado o alto)';
+      else if(isFinite(pamV) && pamV<CUT.pamBaja && isFinite(icS) && icS>=2.5) tipo='distributivo / vasopléjico (PAM baja con gasto conservado o alto)';
       if(tipo) L.push(['info','Tipo de shock probable: '+tipo+'.']);
-      if(isFinite(pamV) && pamV<65) L.push(['bad','PAM '+f(pamV,0)+' mmHg <65 → priorizar restaurar la presión de perfusión.']);
-      if(isFinite(lact) && lact>2) L.push([lact>4?'bad':'warn','Lactato '+f(lact,1)+' mmol/L → hipoperfusión tisular; guía la reanimación por su aclaramiento.']);
+      if(window._EA_SEVERA) L.push(['warn','⚠ Hay estenosis aórtica con AVA <1 cm²: el gasto depende de una válvula fija. Los vasodilatadores e inodilatadores pueden hundir la PAM sin subir el gasto, y una descongestión agresiva quita la precarga que ese VI necesita — mantén la PAM y una volemia justa, y valora el tratamiento de la válvula.']);
+      { const padWet = padGiven && padS>=CUT.padAlta;
+        if(window._FA_ON && wet && isFinite(pcpS) && !padWet) L.push(['warn','⚠ La etiqueta HÚMEDO de este perfil descansa ÚNICAMENTE en la PCP por E/e′ y hay FA marcada: confírmala con la VCI/PAD o la clínica antes de descongestionar.']); }
+      if(isFinite(pamV) && pamV<CUT.pamBaja) L.push(['bad','PAM '+f(pamV,0)+' mmHg <65 → priorizar restaurar la presión de perfusión.']);
+      if(isFinite(lact) && lact>CUT.lactAlto) L.push([lact>4?'bad':'warn','Lactato '+f(lact,1)+' mmol/L → hipoperfusión tisular; guía la reanimación por su aclaramiento.']);
       sp.textContent='🩺 '+prof; sp.className='pheno';
     } else { sp.textContent='Ingresa PAM, gasto (IC) y presiones de llenado para clasificar el perfil.'; sp.className='pheno empty'; }
     document.getElementById('shock_list').innerHTML = L.map(function(x){ return '<div class="si '+x[0]+'">'+(x[0]==='bad'?'🔴 ':x[0]==='warn'?'🟡 ':x[0]==='ok'?'🟢 ':'🔵 ')+x[1]+'</div>'; }).join('');
@@ -1358,18 +1601,22 @@ function calc(){
     const svg=document.getElementById('heart');
     if(svg){
       const padH=(isFinite(num('pad_man'))?num('pad_man'):8);
-      const vtrH=num('vtr'), tapH=num('tap'), eelatH=num('ee_lat'), tapseH=num('tapse'), pamH=num('pam');
-      const psapH=(isFinite(vtrH)&&vtrH>0&&vtrH<=8)?4*vtrH*vtrH+padH:NaN;
-      const papmH=isFinite(tapH)?(tapH>=120?79-0.45*tapH:90-0.62*tapH):NaN;
-      const pcpH=isFinite(eelatH)?1.24*eelatH+1.9:NaN;
+      /* usa los MISMOS valores que el resto de la calculadora (E/e′ automático, FEVI por
+         Simpson si la trazaste, PAPm con su tope) — antes recalculaba aparte y quedaba vacío */
+      const vtrH=_vel('vtr','m'), tapH=num('tap'), tapseH=num('tapse'), pamH=num('pam');
+      const eelatH=isFinite(window._EELAT_USED)?window._EELAT_USED:num('ee_lat');
+      const psapH=EC.psap(vtrH,padH);
+      const papmH=EC.papm(tapH);
+      const pcpH=isFinite(window._PCP_USED)?window._PCP_USED:EC.pcp(eelatH);
       const lviddH=num('lvidd'), lvidsH=num('lvids');
-      let efH=NaN; if(isFinite(lviddH)&&isFinite(lvidsH)&&lviddH>lvidsH&&lviddH>0){ const edv=7*Math.pow(lviddH,3)/(2.4+lviddH), esv=7*Math.pow(lvidsH,3)/(2.4+lvidsH); efH=(edv-esv)/edv*100; }
-      const sPAD=!isFinite(padH)?'':padH>=15?'bad':padH<=3?'warn':'ok';
-      const sPCP=!isFinite(pcpH)?'':(pcpH>=8&&pcpH<=12)?'ok':(pcpH>18||pcpH<6)?'bad':'warn';
-      const sPSAP=!isFinite(psapH)?'':psapH<=35?'ok':psapH<=50?'warn':'bad';
-      const sPAPm=!isFinite(papmH)?'':papmH<=20?'ok':papmH<=25?'warn':'bad';
-      const sEF=!isFinite(efH)?'':efH>=52?'ok':efH>=40?'warn':'bad';
-      const sPAM=!isFinite(pamH)?'':pamH>=65?'ok':'bad';
+      let efH=_efFinal().v;                                   // Simpson biplano si existe
+      if(!isFinite(efH) && isFinite(lviddH)&&isFinite(lvidsH)&&lviddH>lvidsH&&lviddH>0){ const edv=7*Math.pow(lviddH,3)/(2.4+lviddH), esv=7*Math.pow(lvidsH,3)/(2.4+lvidsH); efH=(edv-esv)/edv*100; }
+      const sPAD=EC.sPAD(padH);
+      const sPCP=EC.sPCP(pcpH);
+      const sPSAP=EC.sPSAP(psapH);
+      const sPAPm=EC.sPAPm(papmH);
+      const sEF=EC.sEF(efH,M);
+      const sPAM=!isFinite(pamH)?'':pamH>=CUT.pamBaja?'ok':'bad';
       const V=function(x){ return isFinite(x)?f(x,0):'—'; };
       const nd=function(x,y,w,h,lab,val,sev,extra){
         let g='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="13" fill="'+_hcol(sev)+'" stroke="'+_hstr(sev)+'" stroke-width="1.6"/>'
@@ -1387,7 +1634,7 @@ function calc(){
       s+=nd(60,12,72,40,'AP · PAPm', V(papmH), sPAPm);
       s+=nd(208,12,72,40,'Aorta · PAM', V(pamH), sPAM);
       s+=nd(46,58,96,54,'AD · PAD', V(padH), sPAD);
-      s+=nd(198,58,96,54,'AI · PCP', V(pcpH), sPCP);
+      s+=nd(198,58,96,54,'AI · PCP', V(pcpH), sPCP, window._FA_ON&&isFinite(pcpH)?'⚠ FA: orientativa':'');
       s+=nd(46,122,96,98,'VD · PSAP', V(psapH), sPSAP, isFinite(tapseH)?'TAPSE '+f(tapseH,0)+' mm':'');
       const efInv=isFinite(lviddH)&&isFinite(lvidsH)&&lviddH<=lvidsH;
       s+=nd(198,122,96,98,'VI · FEVI', isFinite(efH)?f(efH,0)+'%':(efInv?'⚠':'—'), efInv?'bad':sEF, efInv?'LVIDd ≤ LVIDs · revisar':'');
@@ -1398,7 +1645,7 @@ function calc(){
   /* ---------- 💧 Respuesta a fluidos ---------- */
   {
     const man=(document.getElementById('fr_man')||{}).value||'epp';
-    const TH={epp:10,mini:6,eeo:5,bolo:15}[man], MAN={epp:'elevación pasiva de piernas',mini:'mini-bolo de 100 mL',eeo:'oclusión teleespiratoria',bolo:'bolo de 500 mL'}[man];
+    const TH={epp:10,mini:10,eeo:5,bolo:15}[man], MAN={epp:'elevación pasiva de piernas',mini:'mini-bolo de 100 mL',eeo:'oclusión teleespiratoria',bolo:'bolo de 500 mL'}[man];
     const v0=num('fr_vti0'), v1=num('fr_vti1');
     let resp=null;
     if(isFinite(v0)&&v0>0&&isFinite(v1)){
@@ -1421,7 +1668,7 @@ function calc(){
         badge('b_ivcidx', ivcResp?'Sugiere respuesta (≥40%)':'No sugiere (<40%)', ivcResp?'b-ok':'b-warn');
       }
     } else { set('o_ivcidx','—','num'); badge('b_ivcidx', (isFinite(dmax)&&isFinite(dmin))?'revisar máx/mín':'—', (isFinite(dmax)&&isFinite(dmin))?'b-bad':'b-mut'); }
-    const pmax=num('fr_vmax'), pmin=num('fr_vmin');
+    const pmax=_vel('fr_vmax','cm'), pmin=_vel('fr_vmin','cm');
     let vpResp=null;
     if(isFinite(pmax)&&isFinite(pmin)&&pmin>0&&pmax>=pmin){
       const dvp=(pmax-pmin)/((pmax+pmin)/2)*100; vpResp=dvp>=12;
@@ -1483,15 +1730,23 @@ function calc(){
         const falt=CHKS.filter(function(p){ const e=document.getElementById(p[0]); return !(e&&e.checked); }).map(function(p){return p[1];});
         L.push('⚠ Faltan '+falt.length+' de '+CHKS.length+' condiciones de validez ('+falt.join(', ')+') → la VPP/VVS puede dar un falso positivo o negativo. Usa la elevación pasiva de piernas o el ΔVTI, que no exigen estas condiciones.');
       }
-      const ref=isFinite(vpp)?vpp:vvs;
+      const esVpp=isFinite(vpp), ref=esVpp?vpp:vvs;
+      const Ualto=esVpp?17:12, Ubajo=esVpp?4:9, Uzona=esVpp?'4–17% (UCI)':'9–12%';
       if(isFinite(ref)){
-        if(ref>17){ L.push('Predice RESPUESTA a volumen (por encima de la zona gris de UCI)'+(valido?'':' — si las condiciones fueran válidas')+'.');
+        if(ref>=Ualto){ L.push('Predice RESPUESTA a volumen (por encima de la zona gris '+Uzona+')'+(valido?'':' — si las condiciones fueran válidas')+'.');
           const W=_fluidWarnings();
           if(W.length) L=L.concat(W);
-          else L.push('El eco de este estudio no muestra sobrecarga del VD ni congestión que contraindiquen el volumen.');
+          else {
+            /* antes se afirmaba aunque no se hubiera introducido NI UN dato del VD */
+            const _vdVisto = isFinite(num('tapse'))||isFinite(_vel('vtr','m'))||isFinite(num('tap'))||isFinite(num('rv_d'))||isFinite(num('ecc_d1'))||isFinite(num('rv_wall'))||!!((document.getElementById('ck_mcconnell')||{}).checked)||!!((document.getElementById('ck_septo')||{}).checked);
+            const _congVisto = (document.getElementById('vx_ivc')||{}).value!=='' || isFinite(_n('o_pcp'));
+            L.push((_vdVisto&&_congVisto)
+              ? 'El eco de este estudio no muestra sobrecarga del VD ni congestión que contraindiquen el volumen.'
+              : '⚠ En este estudio NO se ha explorado '+[!_vdVisto?'el ventrículo derecho (TAPSE, VTR/PSAP, VD/VI, excentricidad)':'',!_congVisto?'la congestión (VExUS o PCP)':''].filter(Boolean).join(' ni ')+': una prueba dinámica positiva NO basta para dar volumen con seguridad — descártalo primero.');
+          }
         }
-        else if(ref<4) L.push('NO predice respuesta a volumen: es poco probable que un bolo aumente el gasto → si hay hipoperfusión, valorar inotrópico/vasopresor.');
-        else { L.push('ZONA GRIS de UCI (4–17%): la prueba NO decide — ahí cae el 62% de los pacientes críticos (Biais 2014). Con el corte clásico de 12% este valor '+(ref>=12?'sería "positivo"':'sería "negativo"')+', pero no es fiable por sí solo.');
+        else if(ref<Ubajo) L.push('NO predice respuesta a volumen: es poco probable que un bolo aumente el gasto → si hay hipoperfusión, valorar inotrópico/vasopresor.');
+        else { L.push('ZONA GRIS '+Uzona+': la prueba NO decide — ahí cae el 62% de los pacientes críticos (Biais 2014). Con el corte clásico de 12% este valor '+(ref>=12?'sería "positivo"':'sería "negativo"')+', pero no es fiable por sí solo.');
           if(vtcResp===true) L.push('La prueba del volumen tidal es POSITIVA → respondedor.'); else if(vtcResp===false) L.push('La prueba del volumen tidal es negativa → poco probable respondedor.'); else L.push('Resuélvelo con elevación pasiva de piernas (ΔVTI ≥10%), oclusión teleespiratoria o la prueba del volumen tidal.'); }
       } else if(vtcResp!==null) L.push(vtcResp?'Prueba del volumen tidal POSITIVA → respondedor.':'Prueba del volumen tidal negativa → poco probable respondedor.');
     }
@@ -1500,35 +1755,42 @@ function calc(){
 
   /* ---------- 🫁 VD agudo / TEP ---------- */
   {
-    const tapV=num('tap'), vtrV=num('vtr');
-    const gradIT=isFinite(vtrV)?4*vtrV*vtrV:NaN;
-    let s6060=null;
-    if(isFinite(tapV)&&isFinite(gradIT)){
-      s6060=(tapV<60 && gradIT<60);
-      document.getElementById('o_6060').textContent=(s6060?'PRESENTE':'Ausente')+' (TAP '+f(tapV,0)+' ms · grad IT '+f(gradIT,0)+' mmHg)';
-      badge('b_6060', s6060?'Sugiere TEP':'—', s6060?'b-bad':'b-ok');
+    const tapV=num('tap'), vtrV=_vel('vtr','m');
+    const gradIT=EC.gradTR(vtrV);
+    const s6060=EC.s6060(tapV,vtrV);
+    if(s6060!==null){
+      const _itTrivial=isFinite(gradIT)&&gradIT<CUT.gradITminimo;
+      document.getElementById('o_6060').textContent=(s6060?'PRESENTE':(_itTrivial?'NO VALORABLE (IT trivial <'+CUT.gradITminimo+' mmHg)':'Ausente'))+' (TAP '+f(tapV,0)+' ms · grad IT '+f(gradIT,0)+' mmHg)';
+      /* «Ausente» NO es tranquilizador: el 60/60 es muy específico y poco sensible */
+      badge('b_6060', s6060?'Sugiere TEP':(_itTrivial?'No valorable':'Ausente (no descarta)'), s6060?'b-bad':'b-mut');
     } else { document.getElementById('o_6060').textContent='—'; badge('b_6060','faltan TAP/VTR','b-mut'); }
     const d1=num('ecc_d1'), d2=num('ecc_d2');
-    let eccHigh=null;
-    if(isFinite(d1)&&isFinite(d2)&&d2>0){ const ei=d1/d2; eccHigh=ei>1.1;
+    const eccHigh=EC.eccAlta(d1,d2);   /* d1 perpendicular · d2 paralelo */
+    if(eccHigh!==null){ const ei=EC.ecc(d1,d2);
       document.getElementById('o_ecc').textContent=f(ei,2);
       document.getElementById('o_ecc').className='num '+(eccHigh?'c-bad':'c-ok');
       badge('b_ecc', eccHigh?'Septo desplazado (sobrecarga de presión)':'Normal', eccHigh?'b-bad':'b-ok');
     } else { set('o_ecc','—','num'); badge('b_ecc','—','b-mut'); }
     const wall=num('rv_wall');
     let cronico=null;
-    if(isFinite(wall)){ cronico=wall>5;
+    if(isFinite(wall)){ cronico=wall>CUT.rvWallCron;
       document.getElementById('o_rvwall').textContent=f(wall,0)+' mm — '+(cronico?'pared engrosada':'pared no engrosada');
       badge('b_rvwall', cronico?'Sugiere CRÓNICA':'Compatible con AGUDA', cronico?'b-warn':'b-ok');
     } else { document.getElementById('o_rvwall').textContent='—'; badge('b_rvwall','—','b-mut'); }
     const mcc=(document.getElementById('ck_mcconnell')||{}).checked, sep=(document.getElementById('ck_septo')||{}).checked;
-    const rvlvTxt=_tv('o_rvlv'); const rvlv=parseFloat((rvlvTxt||'').replace(',','.'));
-    const A=[]; if(s6060) A.push('signo 60/60'); if(mcc) A.push('McConnell'); if(eccHigh) A.push('índice de excentricidad >1,1'); if(sep) A.push('septo aplanado'); if(isFinite(rvlv)&&rvlv>1) A.push('VD/VI >1');
+    const _rvd2=num('rv_d'), _lvd2=num('lv_bd');
+    const rvlv=EC.rvlv(_rvd2,_lvd2);
+    const A=[]; if(s6060) A.push('signo 60/60'); if(mcc) A.push('McConnell'); if(eccHigh) A.push('índice de excentricidad >1,1'); if(sep) A.push('septo aplanado'); if(isFinite(rvlv)&&rvlv>CUT.rvlvAlta) A.push('VD/VI >1');
     let rc='';
     if(A.length){
+      window._VD_AGUDO_POS = true;
       rc=(( s6060||mcc )?'MUY sugestivo de cor pulmonale agudo / TEP':'Sobrecarga del VD')+': '+A.join(' · ')+'.';
-      if(cronico===true) rc+=' ⚠ Pared del VD >5 mm → hay un componente CRÓNICO; el cuadro puede ser agudo sobre crónico.';
-      else if(cronico===false) rc+=' Pared no engrosada → apoya que sea agudo.';
+      const _psapVD=EC.psap(vtrV, isFinite(num('pad_man'))?num('pad_man'):8);
+      const _psapCron=isFinite(_psapVD)&&_psapVD>CUT.psapCron;
+      if(cronico===true) rc+=' ⚠ Pared del VD >'+CUT.rvWallCron+' mm → hay un componente CRÓNICO; el cuadro puede ser agudo sobre crónico.';
+      else if(cronico===false) rc+= _psapCron
+        ? ' Pared no engrosada, PERO la PSAP es '+f(_psapVD,0)+' mmHg (>'+CUT.psapCron+'): un VD sin hipertrofia rara vez genera más de 60 mmHg de forma aguda → valora HP crónica o agudo-sobre-crónico ANTES de asumir TEP (gradiente IT '+f(gradIT,0)+' mmHg).'
+        : ' Pared no engrosada → apoya que sea agudo.';
       if(s6060||mcc) rc+=' Con inestabilidad hemodinámica y sospecha clínica, esto apoya el TEP de alto riesgo.';
     } else if(isFinite(tapV)||isFinite(d1)||isFinite(wall)) rc='Sin signos de sobrecarga aguda del VD por los parámetros introducidos (su ausencia no descarta TEP).';
     document.getElementById('o_rvacute').textContent=rc||'—';
@@ -1543,14 +1805,14 @@ function calc(){
       document.getElementById('o_pesize').className='num '+(pe>20?'c-bad':pe>=10?'c-warn':'c-ok');
       badge('b_pesize', sev, pe>20?'b-bad':pe>=10?'b-warn':'b-ok');
     } else { set('o_pesize','—','num'); badge('b_pesize','—','b-mut'); }
-    const me=num('pe_mit_e'), mi=num('pe_mit_i');
+    const me=_vel('pe_mit_e','m'), mi=_vel('pe_mit_i','m');
     let mitHigh=null;
     if(isFinite(me)&&isFinite(mi)&&me>0){ const v=(me-mi)/me*100; mitHigh=v>30;
       document.getElementById('o_pemit').innerHTML=f(v,0)+'<small>%</small>';
       document.getElementById('o_pemit').className='num '+(mitHigh?'c-bad':'c-ok');
       badge('b_pemit', mitHigh?'>30% — anormal':'Normal', mitHigh?'b-bad':'b-ok');
     } else { set('o_pemit','—','num'); badge('b_pemit','—','b-mut'); }
-    const ti=num('pe_tri_i'), te=num('pe_tri_e');
+    const ti=_vel('pe_tri_i','m'), te=_vel('pe_tri_e','m');
     let triHigh=null;
     if(isFinite(ti)&&isFinite(te)&&ti>0){ const v=(ti-te)/ti*100; triHigh=v>60;
       document.getElementById('o_petri').innerHTML=f(v,0)+'<small>%</small>';
@@ -1558,13 +1820,58 @@ function calc(){
       badge('b_petri', triHigh?'>60% — anormal':'Normal', triHigh?'b-bad':'b-ok');
     } else { set('o_petri','—','num'); badge('b_petri','—','b-mut'); }
     const cAD=(document.getElementById('ck_colad')||{}).checked, cVD=(document.getElementById('ck_colvd')||{}).checked, plet=(document.getElementById('ck_plet')||{}).checked;
-    const S=[]; if(cAD) S.push('colapso de la AD >⅓'); if(cVD) S.push('colapso diastólico del VD'); if(plet) S.push('plétora de VCI'); if(mitHigh) S.push('variación mitral >30%'); if(triHigh) S.push('variación tricuspídea >60%');
+    const enVM=((document.getElementById('fr_vent')||{}).value==='vm');
+    const S=[]; if(cAD) S.push('colapso de la AD >⅓'); if(cVD) S.push('colapso diastólico del VD'); if(plet) S.push('plétora de VCI');
+    const Sdop=[];
+    if(mitHigh) (enVM?Sdop:S).push('variación mitral >30%'+(enVM?' (en VM se invierte — no cuenta)':''));
+    if(triHigh) (enVM?Sdop:S).push('variación tricuspídea >60%'+(enVM?' (en VM se invierte — no cuenta)':''));
+    const hayDerrame=isFinite(pe)&&pe>0, hayColapso=cAD||cVD;
     let t='', tb='b-mut';
-    if(S.length>=3){ t='FISIOLOGÍA DE TAPONAMIENTO ('+S.length+' signos: '+S.join(' · ')+') → con inestabilidad, pericardiocentesis urgente; evita la presión positiva antes de drenar.'; tb='b-bad'; }
-    else if(S.length){ t='Signos parciales ('+S.join(' · ')+') — vigilar estrechamente y correlacionar con la clínica (pulso paradójico, PVY, hipotensión).'; tb='b-warn'; }
-    else if(isFinite(pe)) t=(pe>0?'Derrame sin signos de compromiso hemodinámico por los datos introducidos.':'—'), tb=(pe>0?'b-ok':'b-mut');
+    if(enVM && (mitHigh||triHigh)) t='⚠ El modo ventilatorio está en VM: con presión positiva las variaciones respiratorias se INVIERTEN — confirma el modo antes de darles valor. ';
+    window._TAMP_POS = (S.length>=3 && hayDerrame && hayColapso);
+    if(window._TAMP_POS){ t+='HALLAZGOS COMPATIBLES CON COMPROMISO HEMODINÁMICO ('+S.length+' signos: '+S.join(' · ')+') → el taponamiento es un diagnóstico CLÍNICO-ecográfico; con inestabilidad, pericardiocentesis urgente y evitar la presión positiva antes de drenar.'; tb='b-bad'; }
+    else if(S.length){ t+='Signos parciales ('+S.join(' · ')+')'+(!hayDerrame?' — SIN derrame registrado: sin derrame no hay taponamiento':'')+((hayDerrame&&!hayColapso)?' — falta un colapso de cámara (AD >⅓ o VD diastólico), el signo más específico':'')+'. Correlaciona con la clínica (pulso paradójico, PVY, hipotensión).'; tb='b-warn'; }
+    else if(isFinite(pe)) t+=(pe>0?'Derrame sin signos de compromiso hemodinámico por los datos introducidos.':''), tb=(pe>0?'b-ok':'b-mut');
     document.getElementById('o_tamp').textContent=t||'—';
-    badge('b_tamp', S.length>=3?'Taponamiento':S.length?'Parcial':(isFinite(pe)?'Sin compromiso':'—'), tb);
+    badge('b_tamp', window._TAMP_POS?'Compromiso hemodinámico':S.length?'Parcial':(isFinite(pe)?'Sin compromiso':'—'), tb);
+  }
+
+  /* ---------- 🚨 Reajuste del perfil de shock ----------
+     El perfil se calcula ANTES que taponamiento y VD agudo; aquí ya tenemos sus
+     resultados frescos y, si el patrón es OBSTRUCTIVO, la conducta cambia por completo. */
+  {
+    /* banderas, no expresiones regulares sobre la prosa: el texto negativo
+       («Derrame SIN signos de compromiso hemodinámico») contenía la misma cadena
+       que el positivo y disparaba una pericardiocentesis falsa. */
+    const _tamp=!!window._TAMP_POS, _vdAgudo=!!window._VD_AGUDO_POS;
+    if(_tamp){
+      /* en enfermedad pericárdica las presiones se igualan: el algoritmo diastólico
+         ASE 2016 excluye este escenario y la PCP por E/e′ pierde validez */
+      const _np=document.getElementById('n_pcp');
+      if(_np && isFinite(_n('o_pcp'))) _np.textContent='⚠ Fisiología de TAPONAMIENTO: en enfermedad pericárdica las presiones se igualan, el algoritmo ASE no aplica y la PCP por E/e′ pierde validez — no decidas con esta cifra. '+_np.textContent;
+      const _gr=document.getElementById('o_grade');
+      if(_gr && _gr.textContent && _gr.textContent!=='—') _gr.textContent=_gr.textContent+'  ⚠ no aplicable en enfermedad pericárdica';
+    }
+    const sl=document.getElementById('shock_list');
+    if(sl && (_tamp||_vdAgudo)){
+      /* el mecanismo obstructivo manda sobre la casilla de Nohria */
+      const sp=document.getElementById('shock_profile');
+      if(sp && sp.textContent.indexOf('Ingresa')<0){
+        const cel=(sp.textContent.match(/Perfil [ABCL]/)||[''])[0];
+        sp.textContent='🩺 Patrón OBSTRUCTIVO / falla del ventrículo derecho'
+          + (_tamp?' — taponamiento pericárdico':'') + (_vdAgudo?(_tamp?' + sobrecarga aguda del VD':' — sobrecarga aguda del VD'):'')
+          + (cel?'  ·  por llenado y perfusión caería en el '+cel+', pero aquí decide el mecanismo':'');
+        sp.className='pheno';
+      }
+      const A=[];
+      A.push('⚠ PATRÓN OBSTRUCTIVO / FALLA DEL VD'+(_tamp?' (hallazgos de taponamiento)':'')+(_vdAgudo?' (sobrecarga aguda del VD)':'')+': la conducta NO es inotrópico-inodilatador ni descongestión.');
+      if(_tamp) A.push('Taponamiento: PERICARDIOCENTESIS si hay inestabilidad. Evita la ventilación con presión positiva antes de drenar; el volumen solo como puente.');
+      if(_vdAgudo) A.push('Falla aguda del VD: descargar el VD (no sobrecargarlo de volumen), noradrenalina para mantener la perfusión coronaria del VD, valorar reperfusión si es TEP de alto riesgo; evitar hipoxemia e hipercapnia.');
+      sl.innerHTML = A.map(function(t){ return '<div class="si bad">🔴 '+t+'</div>'; }).join('')
+        + Array.prototype.filter.call(sl.children, function(el){
+            return !/inodilatador|descongesti|reto de (volumen|fluidos)|distributivo|NO es la bomba ni la precarga|Sin congestión ni hipoperfusión|Hipoperfusión sin congestión|soporte inotr/i.test(el.textContent);
+          }).map(function(el){ return el.outerHTML; }).join('');
+    }
   }
 
   /* ---------- 🧾 Conclusiones automáticas ---------- */
@@ -1603,32 +1910,32 @@ function _efFinal(){
    de la VPP/ΔVTI (falla del VD) y lo que mide el costo de dar volumen (congestión). */
 function _fluidWarnings(){
   const W=[];
-  const tapV=num('tap'), vtrV=num('vtr');
-  const grad=isFinite(vtrV)?4*vtrV*vtrV:NaN;
-  const s6060=(isFinite(tapV)&&isFinite(grad))?(tapV<60&&grad<60):false;
+  const tapV=num('tap'), vtrV=_vel('vtr','m');
+  const s6060=EC.s6060(tapV,vtrV)===true;
   const mcc=(document.getElementById('ck_mcconnell')||{}).checked, sep=(document.getElementById('ck_septo')||{}).checked;
-  const d1=num('ecc_d1'), d2=num('ecc_d2');
-  const ecc=(isFinite(d1)&&isFinite(d2)&&d2>0)?(d1/d2>1.1):false;
-  const rvd=num('rv_d'), lvd=num('lv_bd');
-  const rvlv=(isFinite(rvd)&&isFinite(lvd)&&lvd>0)?(rvd/lvd>1):false;
+  const ecc=EC.eccAlta(num('ecc_d1'),num('ecc_d2'))===true;
+  const _rl=EC.rvlv(num('rv_d'),num('lv_bd'));
+  const rvlv=isFinite(_rl)&&_rl>CUT.rvlvAlta;
   const tapse=num('tapse');
-  if(s6060||mcc||ecc||sep||rvlv||(isFinite(tapse)&&tapse<17))
+  if(s6060||mcc||ecc||sep||rvlv||(isFinite(tapse)&&tapse<CUT.tapseNorm))
     W.push('⚠ ESTE MISMO ESTUDIO muestra signos de sobrecarga/disfunción del VD → una prueba dinámica positiva puede ser FALSO POSITIVO: en falla del VD el volumen lo distiende, comprime el VI y empeora el gasto. Prioriza descargar el VD (no dar volumen a ciegas).');
   const vex=_tv('o_vexus'); const m=(vex||'').match(/[123]/); const vexN=m?parseInt(m[0],10):NaN;
   const pcpV=_n('o_pcp');
-  if((isFinite(vexN)&&vexN>=2)||(isFinite(pcpV)&&pcpV>18))
-    W.push('⚠ Hay CONGESTIÓN en este estudio'+((isFinite(vexN)&&vexN>=2)?' (VExUS grado '+vexN+')':'')+((isFinite(pcpV)&&pcpV>18)?' (PCP '+_tv('o_pcp')+')':'')+' → aunque sea respondedor, el volumen aumentará el edema: pesa el beneficio de perfusión contra el costo de congestión.');
+  const congVex=isFinite(vexN)&&vexN>=CUT.vexusCong, congPcp=isFinite(pcpV)&&pcpV>CUT.pcpCong;
+  if(congVex||congPcp)
+    W.push('⚠ Hay CONGESTIÓN en este estudio'+(congVex?' (VExUS grado '+vexN+')':'')+(congPcp?' (PCP '+_tv('o_pcp')+(window._FA_ON?', ⚠ estimada en FA':'')+')':'')+' → aunque sea respondedor, el volumen aumentará el edema: pesa el beneficio de perfusión contra el costo de congestión.');
   return W;
 }
 function _conclusions(){
   const C=[];
   const wd=document.getElementById('w_dias'); const invert=wd && wd.style.display!=='none';
   const EF=_efFinal(); const ef=EF.v;
-  const sexM=(document.getElementById('sexo')||{}).value==='M'; const cutEF=sexM?54:52;
+  const sexM=(document.getElementById('sexo')||{}).value==='M'; const cutEF=EC.cutEF(sexM);
   if(invert && !isFinite(window._EFS)) C.push('⚠ Diámetros del VI incongruentes (LVIDd ≤ LVIDs): FS y FEVI no valorables — repetir la medición diástole/sístole.');
   else if(isFinite(ef)){
     const txt=Math.round(ef)+'% ('+EF.m+')';
-    if(ef<40) C.push('Disfunción sistólica del VI de moderada a severa (FEVI '+txt+').');
+    if(ef<CUT.efModerada) C.push('Disfunción sistólica SEVERA del VI (FEVI '+txt+' · ASE 2015: severa <30 %).');
+    else if(ef<CUT.efLeve) C.push('Disfunción sistólica MODERADA del VI (FEVI '+txt+' · 30–39 %).');
     else if(ef<cutEF) C.push('Función sistólica del VI en el límite inferior / levemente reducida (FEVI '+txt+').');
     else C.push('Función sistólica del VI conservada (FEVI '+txt+').');
     if(isFinite(EF.otro) && Math.abs(EF.otro-ef)>10)
@@ -1642,30 +1949,39 @@ function _conclusions(){
   const grade=_tv('o_grade');
   if(grade && /Grado/.test(grade)) C.push('Disfunción diastólica de '+grade.replace('Grado','grado')+((_tv('b_lap')&&_tv('b_lap')!=='—')?' con presión de la AI '+_tv('b_lap').toLowerCase():'')+'.');
   const psap=_n('o_psap'), pcp=_n('o_pcp');
-  if(isFinite(psap)&&psap>35){ let t='Hipertensión pulmonar ('+_tv('b_psap').toLowerCase()+', PSAP '+_tv('o_psap')+')'; if(isFinite(pcp)) t+= pcp>15?' de perfil poscapilar (grupo 2, cardiopatía izquierda)':' de perfil precapilar — evaluar grupos 1/3/4'; C.push(t+'.'); }
+  if(isFinite(psap)&&psap>CUT.psapNorm){ const _php=_tv('b_hp');
+    let t='PSAP estimada '+_tv('o_psap')+' ('+_tv('b_psap').toLowerCase()+')'+((_php&&_php!=='—')?', con probabilidad ecocardiográfica de HP '+_php.toLowerCase()+' por la VTR':'');
+    if(isFinite(pcp)) t+= (pcp>CUT.pcpAlta?'; el perfil apunta a POSCAPILAR (grupo 2, cardiopatía izquierda)':'; el perfil apunta a PRECAPILAR — evaluar grupos 1/3/4')
+                        +'. La clasificación definitiva del grupo exige hemodinamia invasiva'+(window._FA_AVISO||'')+(window._PCP_EXTRAP?window._PCP_EXTRAP_AVISO:'');
+    C.push(t+'.'); }
   const coup=_n('o_coup');
-  if(isFinite(coup)&&coup<0.6) C.push('Acoplamiento VD–arteria pulmonar alterado (TAPSE/PSAP '+_tv('o_coup')+') → disfunción del ventrículo derecho.');
+  if(isFinite(coup)&&coup<CUT.coupNorm){ const _tp=_n('o_tapse2');
+    C.push('Acoplamiento VD–arteria pulmonar alterado (TAPSE/PSAP '+_tv('o_coup')+')'
+      + ((isFinite(_tp)&&_tp>=CUT.tapseNorm)
+          ? ': con un TAPSE normal ('+_tv('o_tapse2')+') refleja sobre todo la POSCARGA pulmonar elevada — reserva del VD reducida, no necesariamente disfunción contráctil.'
+          : ' → disfunción del ventrículo derecho.')); }
   const rvfx=_tv('o_rvfx');
   if(/Reducida|probable/i.test(rvfx)) C.push('Disfunción sistólica del ventrículo derecho ('+[_tv('o_tapse2')?'TAPSE '+_tv('o_tapse2'):'',_tv('o_rvs')?'S′ '+_tv('o_rvs'):'',_tv('o_fac')?'FAC '+_tv('o_fac'):''].filter(Boolean).join(', ')+').');
   if(_tv('b_rvd')==='Dilatado') C.push('Dilatación del ventrículo derecho (diámetro basal '+_tv('o_rvd')+').');
   if(_tv('b_rvlv')==='Sobrecarga aguda') C.push('Relación VD/VI '+_tv('o_rvlv')+' (>1) → sobrecarga aguda del VD; considerar TEP.');
-  if(_tv('b_ravi')==='Dilatada'||_tv('b_raarea')==='Dilatada') C.push('Dilatación de la aurícula derecha'+(_tv('o_ravi')?' (RAVi '+_tv('o_ravi')+')':'')+'.');
+  if(/Dilatada/.test(_tv('b_ravi'))||/Dilatada/.test(_tv('b_raarea'))) C.push('Dilatación de la aurícula derecha'+(_tv('o_ravi')?' (RAVi '+_tv('o_ravi')+')':'')+'.');
   { const dl=_tv('b_dpdt_lv'); if(/Reducida|Severamente/i.test(dl)) C.push('Contractilidad del VI '+(/Severamente/i.test(dl)?'severamente ':'')+'reducida por dP/dt ('+_tv('o_dpdt_lv')+').'); }
   { const dr=_tv('b_dpdt_rv'); if(/Reducida/i.test(dr)) C.push('Contractilidad del VD '+(/Muy/i.test(dr)?'muy ':'')+'reducida por dP/dt ('+_tv('o_dpdt_rv')+').'); }
   { const pw=_tv('b_mpi_pw'), td=_tv('b_mpi_tdi');
     if(/Disfunción/i.test(pw)) C.push('Índice de Tei del VD elevado por Doppler pulsado (MPI '+_tv('o_mpi_pw')+' · >0,43) → disfunción global del VD.');
     else if(/Disfunción/i.test(td)) C.push('Índice de Tei del VD elevado por TDI (MPI '+_tv('o_mpi_tdi')+' · >0,54) → disfunción global del VD.'); }
-  if(isFinite(pcp)&&pcp>18) C.push('Presiones de llenado izquierdas elevadas (PCP '+_tv('o_pcp')+') → congestión.');
+  if(isFinite(pcp)&&pcp>CUT.pcpCong) C.push('Presiones de llenado izquierdas elevadas (PCP '+_tv('o_pcp')+') → congestión.'+(window._FA_AVISO||'')+(window._PCP_EXTRAP?window._PCP_EXTRAP_AVISO:''));
   { const fl=_tv('o_eaflow'); if(fl && /severa|BAJO FLUJO/i.test(fl)) C.push('Válvula aórtica: '+fl+(_tv('o_ava')?' (AVA '+_tv('o_ava')+(_tv('o_svi')?', VSi '+_tv('o_svi'):'')+')':'')+'.');
     else if(_tv('b_ava')==='Severa') C.push('Estenosis aórtica por área (AVA '+_tv('o_ava')+') — introduce el gradiente MEDIO y el VSi para clasificar el flujo antes de llamarla severa.'); }
-  { const t=_tv('o_tamp'); if(t && /TAPONAMIENTO/i.test(t)) C.push(t); else if(t && /Signos parciales/i.test(t)) C.push(t); }
-  { const r=_tv('o_rvacute'); if(r && /sugestivo|Sobrecarga/i.test(r)) C.push(r); }
+  { const t=_tv('o_tamp'); if(window._TAMP_POS || (t && /Signos parciales/i.test(t))) C.push(t); }
+  { const r=_tv('o_rvacute'); if(window._VD_AGUDO_POS && r) C.push(r); }
   { const fr=_tv('o_frconc'); if(fr && /RESPONDEDOR|NO respondedor/i.test(fr)) C.push('Respuesta a fluidos: '+fr); }
-  { const vp=_tv('o_vpp'), vb=_tv('b_vpp');
-    if(vp && /RESPONDEDOR|ZONA GRIS|No respondedor/i.test(vb)) C.push('VPP '+vp+' — '+vb.split(' · ')[0]+'.'+(_tv('o_vppconc')&&/⚠/.test(_tv('o_vppconc'))?' ⚠ Condiciones de validez incompletas.':'')); }
+  { const vp=_tv('o_vpp'), vb=_tv('b_vpp'); const _adv=_tv('o_vppconc')||'';
+    if(vp && /RESPONDEDOR|ZONA GRIS|No respondedor/i.test(vb)) C.push('VPP '+vp+' — '+vb.split(' · ')[0]+'.'+(/FALSO POSITIVO/.test(_adv)?' ⚠ Puede ser FALSO POSITIVO por sobrecarga/disfunción del VD: no dar volumen a ciegas.':'')+(/CONGESTIÓN/.test(_adv)?' ⚠ Hay congestión: pesa el costo de dar volumen.':'')+(_tv('o_vppconc')&&/⚠/.test(_tv('o_vppconc'))?' ⚠ Condiciones de validez incompletas.':'')); }
   if(_tv('b_ero')==='Severa') C.push('Regurgitación valvular severa por PISA (ERO '+_tv('o_ero')+', volumen '+_tv('o_rvol')+').');
   const qp=_n('o_qpqs');
   if(isFinite(qp)&&qp>=1.5) C.push('Cortocircuito izquierda→derecha significativo (Qp/Qs '+_tv('o_qpqs')+').');
+  if(window._FA_ON) C.push('⚠ Estudio en FIBRILACIÓN AURICULAR (u otra situación excluida): el algoritmo diastólico ASE y la estimación de la PCP por E/e′ no son aplicables — las presiones de llenado son orientativas.');
   return C;
 }
 function _impresion(){
@@ -1681,67 +1997,87 @@ function _impresion(){
   return s;
 }
 function genReport(){
+  const acqWas=(typeof ACQ!=='undefined' && ACQ.on);
+  if(acqWas){ try{ ACQ.restore(); }catch(e){} }   // los campos vuelven a su tarjeta para no duplicar
   calc();
   const today=new Date().toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
   const sexo=document.getElementById('sexo').value==='M'?'Mujer':'Hombre';
   const edad=(document.getElementById('edad').value||'').trim();
-  const sec=(t,ls)=>{ ls=ls.filter(Boolean); return ls.length? '\n▸ '+t+'\n'+ls.map(l=>'   • '+l).join('\n')+'\n' : ''; };
-  let R='══════════════════════════════════════\n   INFORME ECOCARDIOGRÁFICO  (estimaciones)\n══════════════════════════════════════\n';
+  const lim=function(t){ return (t||'').replace(/\s+/g,' ').trim(); };
+  const vacio=function(t){ t=lim(t); return !t || t==='—' || t==='?' || /^ingresa/i.test(t); };
+  /* tarjetas que NO son resultados clínicos */
+  const OMITIR=['valores de referencia','conclusiones automáticas','corazón visual','síntesis hemodinámica','perfil de shock'];
+  let R='══════════════════════════════════════\n   INFORME ECOCARDIOGRÁFICO\n══════════════════════════════════════\n';
   R+='Fecha: '+today+'\n';
-  R+='Paciente: '+sexo+(edad?', '+edad+' años':'')+(_tv('o_bsa')?'  ·  BSA '+_tv('o_bsa'):'')+(_tv('o_imc')?'  ·  IMC '+_tv('o_imc'):'')+'\n';
-  R+=sec('FUNCIÓN VENTRICULAR IZQUIERDA',[
-    (function(){ const E=_efFinal(); if(!isFinite(E.v)) return '';
-      let s='FEVI '+Math.round(E.v)+'% ('+(E.m==='Simpson biplano'?_tv('b_efs')||'':_tv('b_ef')||'')+', '+E.m+')';
-      if(isFinite(E.otro)) s+=' · Teichholz '+Math.round(E.otro)+'%';
-      return s; })(),
-    _tv('o_svs')?'Volumen sistólico (Simpson) '+_tv('o_svs'):'',
-    _tv('o_fs')?'Fracción de acortamiento '+_tv('o_fs'):'',
-    _tv('o_masa')?'Masa VI '+_tv('o_masa')+(_tv('o_imvi')?' · IMVI '+_tv('o_imvi')+' ('+_tv('b_imvi')+')':''):'',
-    _tv('o_grp')?'GRP '+_tv('o_grp')+(_geomText()?' · Geometría: '+_geomText():''):'',
-    _tv('o_dpdt_lv')?'dP/dt VI '+_tv('o_dpdt_lv')+' ('+_tv('b_dpdt_lv')+')':''
-  ]);
-  R+=sec('FUNCIÓN DIASTÓLICA',[
-    _tv('o_ea')?'E/A '+_tv('o_ea'):'',
-    _tv('o_ee2')?'E/e′ promedio '+_tv('o_ee2')+' ('+_tv('b_ee2')+')':'',
-    _tv('o_grade')?'Disfunción diastólica: '+_tv('o_grade')+' · Presión AI: '+_tv('b_lap'):''
-  ]);
-  R+=sec('HEMODINÁMICA PULMONAR Y VD',[
-    _tv('o_psap')?'PSAP '+_tv('o_psap')+' (PAD '+_tv('o_pad')+') — '+_tv('b_psap'):'',
-    _tv('o_papm')?'PAPm '+_tv('o_papm')+' ('+_tv('b_papm')+')':'',
-    _tv('o_pcp')?'PCP '+_tv('o_pcp')+' ('+_tv('b_pcp')+')':'',
-    _tv('o_coup')?'Acoplamiento VD-AP (TAPSE/PSAP) '+_tv('o_coup')+' — '+_tv('b_coup'):''
-  ]);
-  R+=sec('VENTRÍCULO DERECHO Y AURÍCULA DERECHA',[
-    _tv('o_rvfx')?'Función sistólica VD: '+_tv('o_rvfx'):'',
-    _tv('o_rvs')?'S′ tricuspídea '+_tv('o_rvs')+' ('+_tv('b_rvs')+')':'',
-    _tv('o_fac')?'FAC '+_tv('o_fac')+' ('+_tv('b_fac')+')':'',
-    _tv('o_rvd')?'Diámetro basal VD '+_tv('o_rvd')+' ('+_tv('b_rvd')+')':'',
-    _tv('o_rvlv')?'Relación VD/VI '+_tv('o_rvlv')+' ('+_tv('b_rvlv')+')':'',
-    _tv('o_dpdt_rv')?'dP/dt VD '+_tv('o_dpdt_rv')+' ('+_tv('b_dpdt_rv')+')':'',
-    _tv('o_mpi_pw')?'Índice de Tei VD (pulsado) '+_tv('o_mpi_pw')+' ('+_tv('b_mpi_pw')+')':'',
-    _tv('o_mpi_tdi')?'Índice de Tei VD (TDI) '+_tv('o_mpi_tdi')+' ('+_tv('b_mpi_tdi')+')':'',
-    _tv('o_ravi')?'Vol. AD indexado (RAVi) '+_tv('o_ravi')+' ('+_tv('b_ravi')+')':'',
-    _tv('o_raarea')?'Área AD '+_tv('o_raarea')+' ('+_tv('b_raarea')+')':'',
-    _tv('o_rvstr')?'Strain libre VD '+_tv('o_rvstr')+' ('+_tv('b_rvstr')+')':''
-  ]);
-  R+=sec('GASTO CARDÍACO Y RESISTENCIAS',[
-    _tv('o_co')?'GC '+_tv('o_co')+(_tv('o_ci')?' · IC '+_tv('o_ci'):''):'',
-    _tv('o_svr')?'RVS '+_tv('o_svr'):'',
-    _tv('o_pvr')?'RVP '+_tv('o_pvr'):''
-  ]);
-  R+=sec('VÁLVULAS Y SHUNTS',[
-    _tv('o_ava')?'Válvula aórtica: AVA '+_tv('o_ava')+' ('+_tv('b_ava')+')'+(_tv('o_avgrad')?', gradiente máx '+_tv('o_avgrad'):'')+(_tv('o_dvi')?', DVI '+_tv('o_dvi'):''):'',
-    _tv('o_qpqs')?'Qp/Qs '+_tv('o_qpqs')+' ('+_tv('b_qpqs')+')':'',
-    _tv('o_ero')?'Regurgitación (PISA): ERO '+_tv('o_ero')+', volumen '+_tv('o_rvol')+' ('+_tv('b_ero')+')':''
-  ]);
-  const syn=_tv('synth_pheno'); if(syn && syn.indexOf('Ingresa')<0) R+='\n▸ SÍNTESIS HEMODINÁMICA\n   '+syn.replace('🩺 ','')+'\n';
-  const shk=_tv('shock_profile'); if(shk && shk.indexOf('Ingresa')<0) R+='\n▸ PERFIL DE SHOCK\n   '+shk.replace('🩺 ','')+'\n';
+  R+='Paciente: '+sexo+(edad?', '+edad+' años':'')
+    +(_tv('o_bsa')?'  ·  BSA '+_tv('o_bsa'):'')+(_tv('o_imc')?'  ·  IMC '+_tv('o_imc'):'')+'\n';
+  const fc=(document.getElementById('fc').value||'').trim(), pam=(document.getElementById('pam').value||'').trim();
+  const lc=((document.getElementById('lactato')||{}).value||'').trim();
+  /* la tarjeta del perfil de shock se omite más abajo: si no se pone aquí, el lactato no sale */
+  if(fc||pam||lc) R+='FC '+(fc||'—')+' lpm  ·  PAM '+(pam||'—')+' mmHg'+(lc?'  ·  Lactato '+lc+' mmol/L':'')+'\n';
+
+  /* ── MEDICIONES: todo lo que el operador tecleó, por tarjeta ── */
+  let MED='', RES='';
+  document.querySelectorAll('.card:not(.acq-card)').forEach(function(card){
+    const h=card.querySelector('h2') || (card.parentElement&&card.parentElement.tagName==='DETAILS'?card.parentElement.querySelector('summary'):null);
+    if(!h) return;
+    const titulo=lim(h.textContent).replace(/^[^\wÁÉÍÓÚÑáéíóúñ]+/,'');
+    const tl=titulo.toLowerCase();
+    if(OMITIR.some(function(o){ return tl.indexOf(o)>=0; })) return;
+
+    /* medidas introducidas */
+    const ms=[];
+    card.querySelectorAll('.fld').forEach(function(fld){
+      const inp=fld.querySelector('input,select'); if(!inp) return;
+      if(inp.type==='checkbox') { if(inp.checked){ const l=fld.querySelector('label'); ms.push(lim(inp.parentElement.textContent)); } return; }
+      let v;
+      if(inp.tagName==='SELECT'){ if(inp.value==='') return; v=lim(inp.options[inp.selectedIndex].text); }
+      else v=lim(inp.value);
+      if(!v) return;
+      const lab=fld.querySelector('label'); if(!lab) return;
+      if(inp.tagName!=='SELECT' && !/^[+-]?[\d.,]+$/.test(v.replace(/\s/g,''))) v=v+'  ⚠(no numérico — NO usado)';
+      const uh=fld.querySelector('.uhint');
+      let yaConUnidad=false;
+      if(uh){ const mm=lim(uh.textContent).match(/→\s*([\d.,]+)\s*(m\/s|cm\/s)/); if(mm){ v=mm[1]+' '+mm[2]; yaConUnidad=true; } }   // lo que REALMENTE se usó
+      const nom=lim(lab.childNodes[0]?lab.childNodes[0].textContent:lab.textContent);
+      const u=lab.querySelector('.u'); const uu=u?lim(u.textContent).replace(/[()]/g,'').split('·')[0].split(',')[0].trim():'';
+      ms.push(nom+' '+v+((!yaConUnidad&&uu&&uu.length<9)?' '+uu:''));
+    });
+    /* casillas marcadas fuera de .fld */
+    card.querySelectorAll('label.chk input:checked').forEach(function(cb){ const _t='✓ '+lim(cb.parentElement.textContent); if(ms.indexOf(_t)<0) ms.push(_t); });
+    if(ms.length) MED+='\n▸ '+titulo+'\n'+ms.map(function(m){return '   · '+m;}).join('\n')+'\n';
+
+    /* resultados calculados */
+    const rs=[];
+    card.querySelectorAll('.res').forEach(function(res){
+      const num=res.querySelector('.num, .gradebig'); const lab=res.querySelector('.lab');
+      if(!lab) return;
+      const bd=res.querySelector('.badge');
+      const val=num?lim(num.textContent):'';
+      const bt=bd?lim(bd.textContent):'';
+      if(vacio(val) && vacio(bt)) return;
+      const nom=lim(lab.childNodes[0]?lab.childNodes[0].textContent:lab.textContent);
+      rs.push(nom+': '+(vacio(val)?'':val)+(vacio(bt)?'':'  ['+bt+']'));
+    });
+    if(rs.length) RES+='\n▸ '+titulo+'\n'+rs.map(function(r){return '   • '+r;}).join('\n')+'\n';
+  });
+
+  if(MED) R+='\n══════════════════════════════════════\n   MEDICIONES REALIZADAS\n══════════════════════════════════════\n'+MED;
+  if(RES) R+='\n══════════════════════════════════════\n   RESULTADOS CALCULADOS\n══════════════════════════════════════\n'+RES;
+
+  const syn=_tv('synth_pheno'); if(syn && syn.indexOf('Ingresa')<0) R+='\n▸ SÍNTESIS HEMODINÁMICA\n   '+lim(syn).replace('🩺 ','')+'\n';
+  const shk=_tv('shock_profile'); if(shk && shk.indexOf('Ingresa')<0) R+='\n▸ PERFIL DE SHOCK\n   '+lim(shk).replace('🩺 ','')+'\n';
   const concl=_conclusions();
-  if(concl.length) R+='\n══════════════════════════════════════\n▸ CONCLUSIONES / IMPRESIÓN DIAGNÓSTICA\n'+concl.map((c,i)=>'   '+(i+1)+'. '+c).join('\n')+'\n';
+  if(concl.length) R+='\n══════════════════════════════════════\n▸ CONCLUSIONES / IMPRESIÓN DIAGNÓSTICA\n'+concl.map(function(c,i){return '   '+(i+1)+'. '+c;}).join('\n')+'\n';
   const imp=_impresion(); if(imp) R+='\n   ▪ Síntesis integrada: '+imp+'\n';
-  R+='\n──────────────────────────────────────\n⚠ Estimaciones ecocardiográficas — integrar con la clínica.\n  FS/EF por método lineal (Teichholz) son orientativos (preferir Simpson biplano).\n';
-  document.getElementById('rep-txt').value=R;
-  document.getElementById('rep-ov').style.display='block';
+  const E=_efFinal();
+  if(isFinite(E.v)) R+='\n   ▪ Método de la FEVI reportada: '+E.m+(isFinite(E.otro)?' (Teichholz '+Math.round(E.otro)+'% como referencia)':'')+'\n';
+  if((window._BADFIELDS||[]).length) R+='\n⚠ REVISAR ESTOS DATOS: '+window._BADFIELDS.join(' | ')+'\n';
+  R+='\n──────────────────────────────────────\n⚠ Estimaciones ecocardiográficas — integrar con la clínica.\n  Los métodos lineales (Teichholz) son orientativos: preferir Simpson biplano.\n──────────────────────────────────────\n';
+  if(acqWas){ try{ ACQ.build(); ACQ.refresh(); }catch(e){} }   // devolver el modo por ventana
+  const ta=document.getElementById('rep-txt'); if(ta) ta.value=R;
+  const ov=document.getElementById('rep-ov'); if(ov) ov.style.display='block';
+  return R;
 }
 function copyReport(btn){
   const t=document.getElementById('rep-txt');
@@ -1751,9 +2087,12 @@ function copyReport(btn){
 }
 function reset0(){
   if(!confirm('¿Borrar TODOS los datos de este estudio?\n\nSe perderá lo tecleado (no se puede deshacer).')) return;
-  document.querySelectorAll('input').forEach(i=>i.value=''); document.getElementById('sexo').value='H';
+  document.querySelectorAll('input').forEach(i=>{ if(i.type==='checkbox') i.checked=false; else i.value=''; });
+  document.querySelectorAll('.uhint,.autoval').forEach(e=>e.remove());
+  try{ document.getElementById('fr_man').value='epp'; document.getElementById('fr_vent').value='vm'; }catch(e){}
+  document.getElementById('sexo').value='H';
   document.getElementById('padvci').value='8'; document.getElementById('pad_man').value='8';
-  ['vx_ivc','vx_hep','vx_por','vx_ren'].forEach(id=>document.getElementById(id).value='0');
+  ['vx_ivc','vx_hep','vx_por','vx_ren'].forEach(id=>document.getElementById(id).value='');
   window._PAD_SET=0; try{ Persist.clear(); }catch(e){}
   calc();
 }
@@ -1762,13 +2101,16 @@ function reset0(){
 const Persist={
   KEY:'eco_calc_v1', TTL:12*3600*1000,
   _els(){ return Array.prototype.slice.call(document.querySelectorAll('input,select')).filter(function(e){return e.id;}); },
-  save(){ try{ const d={}; this._els().forEach(function(e){ if(e.value!=='') d[e.id]=e.value; });
-    localStorage.setItem(this.KEY, JSON.stringify({t:Date.now(), pad:window._PAD_SET?1:0, d:d})); }catch(e){} },
+  save(){ try{ const d={}, c={}; this._els().forEach(function(e){ if(e.type==='checkbox'){ if(e.checked) c[e.id]=1; } else if(e.value!=='') d[e.id]=e.value; });
+    localStorage.setItem(this.KEY, JSON.stringify({t:Date.now(), pad:window._PAD_SET?1:0, d:d, c:c})); }catch(e){} },
   load(){ try{
     const raw=localStorage.getItem(this.KEY); if(!raw) return 0;
     const o=JSON.parse(raw); if(!o||!o.d) return 0;
     if(Date.now()-(o.t||0) > this.TTL){ localStorage.removeItem(this.KEY); return 0; }
     let n=0; for(const k in o.d){ const e=document.getElementById(k); if(e && e.value!==o.d[k]){ e.value=o.d[k]; n++; } }
+    const cs=o.c||{};
+    document.querySelectorAll('input[type=checkbox]').forEach(function(e){ if(!e.id) return;
+      const debe=!!cs[e.id]; if(e.checked!==debe){ e.checked=debe; if(debe) n++; } });
     window._PAD_SET=o.pad?1:0;
     return n; }catch(e){ return 0; } },
   clear(){ try{ localStorage.removeItem(this.KEY); }catch(e){} }
@@ -1857,9 +2199,9 @@ const QN = {
     this._info(n, extra);
     window.scrollTo({top:0,behavior:'smooth'});
   },
-  all(){ const s=document.getElementById('qn_search'); if(s) s.value=''; this.on=null;
+  all(){ this._exitAcq(); const s=document.getElementById('qn_search'); if(s) s.value=''; this.on=null;
     this._apply(function(){return true;}, 'qn_all', ''); },
-  _exitAcq(){ if(window.ACQ && ACQ.on){ ACQ.restore(); ACQ.on=false; const b=document.getElementById('qn_acq'); if(b) b.classList.remove('on'); } },
+  _exitAcq(){ if(typeof ACQ!=='undefined' && ACQ.on){ ACQ.restore(); ACQ.on=false; const b=document.getElementById('qn_acq'); if(b) b.classList.remove('on'); } },
   scenario(id){
     this._exitAcq();
     const e=this.ESC.filter(function(x){return x.id===id;})[0]; if(!e) return;
@@ -1874,6 +2216,7 @@ const QN = {
     this._apply(function(c){ return idxOf(c)<999; }, 'qn_'+id, e.q, idxOf);
   },
   search(q){
+    this._exitAcq();
     q=this._n(q).trim();
     if(!q){ this.all(); return; }
     this.on=null;
@@ -1892,27 +2235,33 @@ const ACQ = {
     {t:'🫀 Apical 4 cámaras', sub:'Diástole → sístole → Doppler mitral → Doppler tricuspídeo → VTI. La ventana donde más se obtiene.',
      G:[['📥 Congela en DIÁSTOLE (telediástole)', ['rv_eda','edv','rv_d','lv_bd']],
         ['📤 Congela en SÍSTOLE (telesístole) — cámaras izquierdas y derechas', ['rv_esa','esv','ra_vol','ra_area','la_a4','la_len','dia_lavi']],
-        ['🔵 Doppler MITRAL y anillo (lado izquierdo)', ['dia_E','dia_A','dia_esep','dia_elat','ee_lat','pe_mit_e','pe_mit_i','dpdt_lv_dt']],
-        ['🔴 Doppler TRICUSPÍDEO y anillo (lado derecho)', ['vtr','rv_s','tapse','ee_tri','rv_strain','pe_tri_i','pe_tri_e','dpdt_rv_dt','mpi_a','mpi_et','mpi_ivct','mpi_ivrt','mpi_et_tdi']],
-        ['🌀 VTI y jets (apical 5 cámaras)', ['lvot_vti','av_vmax','av_vti','av_gmed','fr_vti0','fr_vti1','fr_vmax','fr_vmin']]]},
+        ['🔵 Doppler MITRAL y anillo (lado izquierdo)', ['dia_E','dia_A','dia_dt','dia_esep','dia_elat','ee_lat','pe_mit_e','pe_mit_i','dpdt_lv_dt']],
+        ['🔴 Doppler TRICUSPÍDEO y anillo (lado derecho)', ['vtr','rv_s','tapse','tri_E','tri_e','ee_tri','ck_mcconnell','ck_septo','rv_strain','pe_tri_i','pe_tri_e','dpdt_rv_dt','mpi_a','mpi_et','mpi_ivct','mpi_ivrt','mpi_et_tdi']],
+        ['🌀 VTI y jets (apical 5 cámaras)', ['lvot_vti','av_vmax','av_vti','av_gmed','fr_vti0','fr_vti1','fr_vmax','fr_vmin']]],
+     R:['o_fac','o_efs','o_svs','o_edvi','o_planos','o_rvd','o_rvlv','o_ravi','o_raarea','o_rvs','o_tapse2','o_rvstr','o_ea','o_dt','o_ee2','o_grade','o_lav','o_lavi_calc','o_grad','o_psap','o_pad','o_paddop','o_pcp','o_dpdt_lv','o_dpdt_rv','o_mpi','o_mpi_tdi','o_pemit','o_petri','o_dvti','o_frconc']},
     {t:'🫀 Apical 2 cámaras', sub:'El segundo plano del BIPLANO. Sin esta ventana, la FEVI y el volumen de la AI quedan monoplano (menos exactos).',
      G:[['📥 Congela en DIÁSTOLE', ['edv2']],
-        ['📤 Congela en SÍSTOLE', ['esv2','la_a2']]]},
+        ['📤 Congela en SÍSTOLE', ['esv2','la_a2']]],
+     R:['o_efs','o_svs','o_edvi','o_planos','o_lav','o_lavi_calc']},
     {t:'📏 Paraesternal eje largo', sub:'Tracto de salida y las medidas lineales para masa y función.',
-     G:[['📐 TSVI y modo M / 2D', ['lvot_d','ivsd','lvidd','lvpwd','lvids']]]},
+     G:[['📐 TSVI y modo M / 2D', ['lvot_d','ivsd','lvidd','lvpwd','lvids']]],
+     R:['o_fs','o_ef','o_masa','o_imvi','o_imvih','o_grp','o_co','o_ci','o_svr','o_ava','o_avai','o_dvi','o_avgrad','o_svi','o_eaflow','o_qpqs']},
     {t:'⭕ Paraesternal eje corto', sub:'Geometría septal y cuantificación de regurgitación.',
      G:[['🔘 Excentricidad del VI (nivel de músculos papilares)', ['ecc_d1','ecc_d2']],
-        ['💧 PISA', ['pisa_r','pisa_va','pisa_vmax','pisa_vti']]]},
+        ['💧 PISA', ['pisa_r','pisa_va','pisa_vmax','pisa_vti']]],
+     R:['o_ecc','o_ero','o_rvol','o_6060','o_rvacute']},
     {t:'🔽 Subcostal', sub:'VCI y congestión venosa, pared del VD, pericardio y la vía pulmonar.',
      G:[['🌊 VCI y VExUS', ['fr_ivcmax','fr_ivcmin','vx_ivc','vx_hep','vx_por','vx_ren']],
-        ['🫧 Pericardio y pared del VD', ['pe_size','rv_wall']],
+        ['🫧 Pericardio y pared del VD', ['pe_size','rv_wall','ck_colad','ck_colvd','ck_plet']],
         ['🫁 Vía pulmonar (aquí o en paraesternal corto)', ['rvot_d','rvot_vti','tap']],
-        ['🍽️ Antro gástrico', ['g_ap','g_cc']]]},
+        ['🍽️ Antro gástrico', ['g_ap','g_cc']]],
+     R:['o_ivcidx','o_vexus','o_papm','o_pvr','o_rvwall','o_pesize','o_tamp','o_6060','o_rvacute']},
     {t:'🩺 Datos clínicos y monitor', sub:'Lo que no sale del transductor: paciente, gases y línea arterial.',
      G:[['👤 Paciente', ['sexo','edad','talla','peso','bsaman','fc','pam','lactato']],
         ['🩸 Presiones y gases', ['pad_man','pao2','spo2','fio2']],
-        ['📈 Línea arterial (VPP · VVS)', ['pp_sysmax','pp_diamax','pp_sysmin','pp_diamin','pp_vpp','pp_vvs','pp_vt6','pp_vt8']],
-        ['💧 Maniobra de fluidos', ['fr_man','fr_vent']]]}
+        ['📈 Línea arterial (VPP · VVS)', ['pp_sysmax','pp_diamax','pp_sysmin','pp_diamin','pp_vpp','pp_vvs','pp_vt6','pp_vt8','vp_pasivo','vp_vt','vp_sinusal','vp_torax','vp_vd','vp_compl','vp_fcfr','vp_valv','vp_soporte','vp_senal','vp_prono']],
+        ['💧 Maniobra de fluidos', ['fr_man','fr_vent']]],
+     R:['o_bsa','o_pafi','o_safi','o_vpp','o_vvs','o_vtc','o_vppconc','o_co','o_ci','o_svr','o_pcp']}
   ],
   /* tarjetas de RESULTADO que se muestran al final del recorrido */
   FIN:['sintesis','corazon visual','perfil de shock','conclusiones'],
@@ -1927,13 +2276,14 @@ const ACQ = {
       card.style.order = 10+wi;
       let html='<h2>'+w.t+'</h2><p class="sub">'+w.sub+'</p>';
       w.G.forEach(function(g, gi){ html += '<p class="sub" style="color:var(--cy);font-weight:700;margin:14px 0 4px">'+g[0]+'</p><div class="grid three" data-slot="'+wi+'_'+gi+'"></div>'; });
+      html += '<p class="sub" style="color:var(--ok);font-weight:700;margin:16px 0 4px">✅ Lo que ya sale de esta ventana</p><div class="out acq-res" data-ids="'+(w.R||[]).join(',')+'"></div>';
       card.innerHTML=html;
       wrap.appendChild(card);
       w.G.forEach(function(g, gi){
         const slot=card.querySelector('[data-slot="'+wi+'_'+gi+'"]');
         g[1].forEach(function(id){
           const inp=document.getElementById(id); if(!inp) return;
-          const fld=inp.closest('.fld') || inp;
+          const fld=inp.closest('.fld') || inp.closest('label.chk') || inp;
           self.orig.push({el:fld, parent:fld.parentNode, next:fld.nextSibling});
           slot.appendChild(fld);
         });
@@ -1941,6 +2291,24 @@ const ACQ = {
       });
     });
     this.built=true;
+  },
+  refresh(){
+    document.querySelectorAll('.acq-res').forEach(function(box){
+      const ids=(box.dataset.ids||'').split(',').filter(Boolean);
+      let html='';
+      ids.forEach(function(id){
+        const el=document.getElementById(id); if(!el) return;
+        const v=(el.textContent||'').trim();
+        if(!v || v==='—') return;
+        const res=el.closest('.res'); if(!res) return;
+        const lab=res.querySelector('.lab');
+        const nombre=lab? (lab.childNodes[0]?lab.childNodes[0].textContent.trim():lab.textContent.trim()) : id;
+        const bd=res.querySelector('.badge');
+        const bt=(bd && bd.textContent.trim() && bd.textContent.trim()!=='—') ? '<span class="'+bd.className+'">'+bd.textContent+'</span>' : '';
+        html+='<div class="res"><div class="lab">'+nombre+'</div><div class="val"><span class="num" style="font-size:1.05rem">'+v+'</span>'+bt+'</div></div>';
+      });
+      box.innerHTML = html || '<div class="sub" style="margin:0;grid-column:1/-1">Aún sin resultados — llena los campos de arriba.</div>';
+    });
   },
   restore(){
     this.orig.slice().reverse().forEach(function(o){
@@ -1975,7 +2343,31 @@ const ACQ = {
     calc();
   }
 };
+QN.expand=function(){ const q=document.getElementById('qnav'); if(q){ q.classList.remove('min'); QN._pin=Date.now(); } };
+QN._mini=function(){
+  const q=document.getElementById('qnav'); if(!q) return;
+  const t=document.getElementById('qn_mini_t');
+  if(t){ const act=document.querySelector('#qn_scn .qn-chip.on')||document.getElementById('qn_acq');
+         const acq=(typeof ACQ!=='undefined'&&ACQ.on);
+         t.textContent = acq? 'Modo por ventana' : (document.querySelector('#qn_scn .qn-chip.on')? document.querySelector('#qn_scn .qn-chip.on').textContent : 'Módulos y escenarios'); }
+};
+(function(){
+  let last=window.scrollY||0, mute=0;
+  const marca=function(){ mute=Date.now(); last=window.scrollY||0; };   // el propio cambio de altura mueve el scroll
+  window.addEventListener('scroll',function(){
+    const q=document.getElementById('qnav'); if(!q) return;
+    const y=window.scrollY||0;
+    if(Date.now()-mute<450){ last=y; return; }                    // ignora el rebote del reflow
+    if(QN._pin && Date.now()-QN._pin<1500){ last=y; return; }      // acabas de abrirla a mano
+    if(y<70){ if(q.classList.contains('min')){ q.classList.remove('min'); marca(); } return; }
+    if(y>last+70 && !q.classList.contains('min')){ q.classList.add('min'); QN._mini(); marca(); return; }
+    if(y<last-90 && q.classList.contains('min')){ q.classList.remove('min'); marca(); return; }
+    if(Math.abs(y-last)>90) last=y;                               // histéresis amplia: nada de temblores
+  },{passive:true});
+})();
 try{ QN.init(); }catch(e){}
+/* los resultados en vivo de cada ventana se refrescan con cada cálculo */
+(function(){ const _c=window.calc; window.calc=function(){ _c.apply(this,arguments); try{ if(typeof ACQ!=='undefined' && ACQ.on) ACQ.refresh(); }catch(e){} }; })();
 calc();
 </script>
 
