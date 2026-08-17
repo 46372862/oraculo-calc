@@ -203,6 +203,18 @@
     .badge{color:#000 !important;background:#eee !important;border:1px solid #777 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .c-ok,.c-warn,.c-bad{color:#000 !important;-webkit-text-fill-color:#000 !important}
   }
+
+/* ── En el celular ───────────────────────────────────────────────────────
+   Medido en un 375x812: los botones de acción quedaban en 35 px de alto,
+   por debajo de los 44 px que recomiendan Apple y Google para el dedo; y los
+   rotulitos de las pastillas de presiones bajaban a 9,6 px, que para un dato
+   clinico es demasiado. Los checkbox NO hacian falta tocarlos: la caja mide
+   24 px pero va dentro de una <label class="chk"> de 44 px, que es el area
+   que se toca de verdad. */
+@media (max-width:559px){
+  .btn{min-height:44px}
+  .pill .pl{font-size:.72rem}
+}
 </style>
 </head>
 <body>
