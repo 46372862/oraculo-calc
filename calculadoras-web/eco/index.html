@@ -17,14 +17,23 @@
 <style>
   :root{
     --bg:#0b0f16; --bg2:#0f1622; --card:#131c2b; --card2:#182234;
-    --bd:#243347; --txt:#e6edf6; --mut:#93a4bd; --dim:#6c7d95;
+    --bd:#243347; --txt:#e6edf6; --mut:#93a4bd; --dim:#8695ac;
     --cy:#38bdf8; --pu:#a78bfa; --pk:#f472b6;
     --ok:#34d399; --warn:#f5c451; --bad:#ff7085; --info:#60a5fa;
+    /* Superficies y tintas que estaban escritas en literal. Sin ellas, un tema
+       claro dejaba texto oscuro sobre fondo oscuro. Estos son los valores del
+       tema OSCURO, o sea el aspecto de siempre: por defecto no cambia nada. */
+    --lienzo:linear-gradient(180deg,#0b0f16,#0a0e14 40%,#0b0f16);
+    --sup:#0c1422; --card-shock:linear-gradient(180deg,#1c1418,#1e1519);
+    --card-synth:linear-gradient(180deg,#181423,#1b1527);
+    --sobre-tinte:#fff; --sobre-acento:#06101f;
+    --barra:rgba(9,16,30,.94); --lg-in-tx:#bfe3fb; --lg-out-tx:#dccdff;
+    --indigo:#818cf8;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
   body{
-    background:linear-gradient(180deg,#0b0f16,#0a0e14 40%,#0b0f16);
+    background:var(--lienzo);
     color:var(--txt); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
     line-height:1.45; padding:0 12px 60px; -webkit-text-size-adjust:100%;
   }
@@ -49,23 +58,23 @@
   .card.vexus{border-left:3px solid #60a5fa}
   .card.ao{border-left:3px solid #f59e0b}
   .card.dia{border-left:3px solid #22d3ee}
-  .card.shock{border-left:3px solid #ef4444;background:linear-gradient(180deg,#1c1418,#1e1519)}
+  .card.shock{border-left:3px solid #ef4444;background:var(--card-shock)}
   .shockmap{display:grid;grid-template-columns:auto 1fr 1fr;gap:5px;margin:4px 0 10px;font-size:.72rem}
   .shockmap .h{color:var(--mut);font-weight:700;display:flex;align-items:center;justify-content:center;text-align:center;padding:5px}
-  .shockmap .q{border:1px solid var(--bd);border-radius:9px;padding:9px 7px;text-align:center;background:#0c1422;color:var(--dim)}
+  .shockmap .q{border:1px solid var(--bd);border-radius:9px;padding:9px 7px;text-align:center;background:var(--sup);color:var(--dim)}
   .shockmap .q b{display:block;font-size:.82rem;color:var(--mut)}
   .shockmap .q.on{background:linear-gradient(120deg,rgba(239,68,68,.28),rgba(245,158,11,.18));box-shadow:inset 0 0 0 1px #ef4444}
-  .shockmap .q.on b{color:#fff}
+  .shockmap .q.on b{color:var(--sobre-tinte)}
   .chips{display:flex;flex-wrap:wrap;gap:6px}
-  .chip{font-size:.72rem;font-weight:700;padding:4px 9px;border-radius:999px;border:1px solid var(--bd);background:#0c1422;color:var(--mut)}
+  .chip{font-size:.72rem;font-weight:700;padding:4px 9px;border-radius:999px;border:1px solid var(--bd);background:var(--sup);color:var(--mut)}
   .chip.pos{border-color:rgba(255,112,133,.4);color:var(--bad);background:rgba(255,112,133,.09)}
   .chip.neg{border-color:rgba(52,211,153,.4);color:var(--ok);background:rgba(52,211,153,.09)}
   .gradebig{font-size:1.2rem;font-weight:800}
-  .card.synth{border-left:3px solid var(--pk);background:linear-gradient(180deg,#181423,#1b1527)}
+  .card.synth{border-left:3px solid var(--pk);background:var(--card-synth)}
   .pheno{font-size:1rem;font-weight:800;line-height:1.34;margin:2px 0 12px;padding:11px 13px;border-radius:12px;background:rgba(244,114,182,.09);border:1px solid rgba(244,114,182,.30)}
   .pheno.empty{color:var(--dim);font-weight:600;background:transparent;border:1px dashed var(--bd)}
   .circuit{display:flex;align-items:stretch;gap:5px;overflow-x:auto;padding:2px 0 10px;-webkit-overflow-scrolling:touch}
-  .pill{flex:1 0 auto;min-width:70px;text-align:center;border-radius:11px;padding:8px 6px;border:1px solid var(--bd);background:#0c1422}
+  .pill{flex:1 0 auto;min-width:70px;text-align:center;border-radius:11px;padding:8px 6px;border:1px solid var(--bd);background:var(--sup)}
   .pill .pl{font-size:.6rem;color:var(--mut);text-transform:uppercase;letter-spacing:.3px;font-weight:700;white-space:nowrap}
   .pill .pv{font-size:1rem;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums;color:var(--dim)}
   .pill.ok{border-color:rgba(52,211,153,.42);background:rgba(52,211,153,.09)} .pill.ok .pv{color:var(--ok)}
@@ -73,7 +82,7 @@
   .pill.bad{border-color:rgba(255,112,133,.48);background:rgba(255,112,133,.11)} .pill.bad .pv{color:var(--bad)}
   .arrow{display:flex;align-items:center;color:var(--dim);font-size:.95rem}
   .synthlist{display:flex;flex-direction:column;gap:6px}
-  .synthlist .si{font-size:.83rem;padding:7px 10px;border-radius:9px;background:#0c1422;border:1px solid var(--bd);border-left-width:3px}
+  .synthlist .si{font-size:.83rem;padding:7px 10px;border-radius:9px;background:var(--sup);border:1px solid var(--bd);border-left-width:3px}
   .si.ok{border-left-color:var(--ok)} .si.warn{border-left-color:var(--warn)} .si.bad{border-left-color:var(--bad)} .si.info{border-left-color:var(--info)}
   .card.gastric{border-left:3px solid #5eead4}
   .card.ref{border-left:3px solid var(--info)}
@@ -102,14 +111,14 @@
   /* 🧭 Barra de navegación por escenario clínico */
   .qnav{overflow-anchor:none}
   .qnav{position:sticky;top:0;z-index:60;margin:0 0 14px;padding:10px 12px;border-radius:14px;
-    background:rgba(9,16,30,.94);backdrop-filter:blur(10px);border:1px solid rgba(56,189,248,.28);box-shadow:0 8px 26px rgba(0,0,0,.45)}
+    background:var(--barra);backdrop-filter:blur(10px);border:1px solid rgba(56,189,248,.28);box-shadow:0 8px 26px rgba(0,0,0,.45)}
   .qn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .qn-row+.qn-row{margin-top:9px}
   .qnav input[type=search]{flex:1;min-width:180px;width:auto;padding:10px 12px;font-size:.95rem}
   .qn-chip{background:rgba(255,255,255,.06);border:1px solid rgba(56,189,248,.28);color:var(--txt);
     border-radius:999px;padding:9px 14px;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;min-height:40px;transition:.15s}
   .qn-chip:hover{border-color:var(--cy)}
-  .qn-chip.on{background:linear-gradient(120deg,var(--cy),#a78bfa);color:#06101f;border-color:transparent}
+  .qn-chip.on{background:linear-gradient(120deg,var(--cy),var(--pu));color:var(--sobre-acento);border-color:transparent}
   .qn-info{color:var(--dim);font-size:.78rem;margin-left:auto;white-space:nowrap}
   .qn-hide{display:none !important}
   /* barra compacta al bajar (gana pantalla en el móvil) */
@@ -129,7 +138,7 @@
   .wrap.qn-ord{display:flex;flex-direction:column}
   .wrap.qn-ord .qnav{order:-999}
   @media print{.qnav{display:none}}
-  input::placeholder{color:#5f7690}
+  input::placeholder{color:#7d90aa}
   input:focus,select:focus{border-color:var(--cy);box-shadow:0 0 0 3px rgba(56,189,248,.22)}
   .fld label::before{content:"✎ ";color:var(--cy);font-weight:800}
   select{background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);
@@ -143,8 +152,8 @@
   .numflash{animation:numflash .5s cubic-bezier(.2,.9,.2,1);display:inline-block}
   .legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:12px 0 2px}
   .legend span{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;border:1px solid var(--bd);font-size:.77rem;font-weight:600}
-  .legend .lg-in{border-left:3px solid var(--cy);background:linear-gradient(90deg,rgba(56,189,248,.12),transparent);color:#bfe3fb}
-  .legend .lg-out{border-left:3px solid var(--pu);background:linear-gradient(90deg,rgba(167,139,250,.12),transparent);color:#dccdff}
+  .legend .lg-in{border-left:3px solid var(--cy);background:linear-gradient(90deg,rgba(56,189,248,.12),transparent);color:var(--lg-in-tx)}
+  .legend .lg-out{border-left:3px solid var(--pu);background:linear-gradient(90deg,rgba(167,139,250,.12),transparent);color:var(--lg-out-tx)}
   .res .lab{font-size:.85rem;color:var(--mut)}
   .res .lab small{display:block;color:var(--dim);font-size:.7rem;margin-top:1px}
   .res .val{display:flex;align-items:center;gap:9px;text-align:right}
@@ -162,7 +171,7 @@
   .geom{margin-top:10px;border:1px solid var(--bd);border-radius:12px;overflow:hidden;font-size:.76rem}
   .geom table{width:100%;border-collapse:collapse}
   .geom th,.geom td{padding:8px 7px;text-align:center;border:1px solid var(--bd)}
-  .geom th{background:#0c1422;color:var(--mut);font-weight:700}
+  .geom th{background:var(--sup);color:var(--mut);font-weight:700}
   .geom td.on{background:linear-gradient(120deg,rgba(167,139,250,.28),rgba(244,114,182,.20));color:#fff;font-weight:800;box-shadow:inset 0 0 0 1px var(--pk)}
   details.acc{margin:14px 0}
   details.acc>summary{list-style:none;cursor:pointer;background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--bd);
@@ -177,11 +186,11 @@
   .pearl{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);border-radius:10px;padding:8px 11px;margin:6px 0;font-size:.82rem}
   .foot{text-align:center;color:var(--dim);font-size:.74rem;margin-top:22px}
   .btnrow{display:flex;gap:8px;justify-content:center;margin:6px 0 2px;flex-wrap:wrap}
-  .btn{background:#0c1422;border:1px solid var(--bd);color:var(--mut);border-radius:10px;padding:8px 14px;font-size:.82rem;cursor:pointer}
+  .btn{background:var(--sup);border:1px solid var(--bd);color:var(--mut);border-radius:10px;padding:8px 14px;font-size:.82rem;cursor:pointer}
   .btn:hover{border-color:var(--cy);color:var(--txt)}
   .inp-bad{border-color:#ff7085 !important;background:rgba(255,112,133,.14) !important;color:#ffd0d7 !important}
   #badbanner{display:none;margin:10px 0;background:rgba(255,112,133,.13);border:1px solid rgba(255,112,133,.5);border-radius:11px;padding:10px 12px;font-size:.82rem;color:#ffd0d7;line-height:1.5}
-  #badbanner b{color:#fff}
+  #badbanner b{color:var(--sobre-tinte)}
   /* 🖨️ Impresión legible: texto y valores en negro sobre blanco, badges con borde */
   @media print{
     body{background:#fff !important;color:#000 !important}
@@ -598,12 +607,12 @@
 <div class="card mpi">
   <h2>🎯 Índice de Tei · MPI del VD</h2>
   <p class="sub">Índice de rendimiento miocárdico <b>global</b> (sístole + diástole) del VD. Usa el método según tu trazado; los <b>cortes NO son intercambiables</b>. Con ritmo irregular (FA) usa el método TDI de un solo latido.</p>
-  <h3 style="margin:6px 0 4px;font-size:.86rem;color:#818cf8">Método Doppler pulsado <span class="u" style="font-weight:400">(2 latidos)</span></h3>
+  <h3 style="margin:6px 0 4px;font-size:.86rem;color:var(--indigo)">Método Doppler pulsado <span class="u" style="font-weight:400">(2 latidos)</span></h3>
   <div class="grid two">
     <div class="fld"><label>Cierre-apertura tricuspídeo · «a» (TCO) <span class="u">(ms)</span></label><input id="mpi_a" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     <div class="fld"><label>Tiempo de eyección del VD · ET (TSVD) <span class="u">(ms)</span></label><input id="mpi_et" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
-  <h3 style="margin:10px 0 4px;font-size:.86rem;color:#818cf8">Método TDI · anillo tricuspídeo lateral <span class="u" style="font-weight:400">(1 latido)</span></h3>
+  <h3 style="margin:10px 0 4px;font-size:.86rem;color:var(--indigo)">Método TDI · anillo tricuspídeo lateral <span class="u" style="font-weight:400">(1 latido)</span></h3>
   <div class="grid three">
     <div class="fld"><label>IVCT <span class="u">(ms)</span></label><input id="mpi_ivct" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     <div class="fld"><label>IVRT <span class="u">(ms)</span></label><input id="mpi_ivrt" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
@@ -632,7 +641,7 @@
     <div class="fld"><label>AI · área en 2 cámaras <span class="u">(cm², telesístole)</span></label><input id="la_a2" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     <div class="fld"><label>AI · longitud MENOR de los 2 planos <span class="u">(cm)</span></label><input id="la_len" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
   </div>
-  <svg id="dopp" viewBox="0 0 320 120" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:430px;display:block;margin:12px auto 2px;background:#0a1120;border:1px solid var(--bd);border-radius:12px"></svg>
+  <svg id="dopp" viewBox="0 0 320 120" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:430px;display:block;margin:12px auto 2px;background:var(--sup);border:1px solid var(--bd);border-radius:12px"></svg>
   <div style="text-align:center;color:var(--dim);font-size:.72rem;margin-bottom:8px">Doppler de llenado mitral (E · A) — el patrón cambia según los valores</div>
   <div class="out">
     <div class="res"><div class="lab">Relación E/A</div><div class="val"><span class="num" id="o_ea">—</span><span class="badge b-mut" id="b_ea">—</span></div></div>
