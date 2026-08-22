@@ -329,9 +329,12 @@ function vVent(){
     }else{
       o+=row('Driving pressure',fmt(dp),'cmH₂O',dp>15?pill('alto','bad'):pill('ok','ok'));
       if(vt)o+=row('Compliance estática',fmt(vt/dp),'mL/cmH₂O');
+      /* Dentro del `else`: con Pmeseta < PEEP la driving pressure es negativa y
+         el propio código acaba de decir que no vale. Calcular el mechanical
+         power con ella daba una cifra sin sentido, y con píldora. */
+      if(vt&&fr&&ppeak!==null){const mp=0.098*fr*(vt/1000)*(ppeak-0.5*dp);
+        o+=row('Mechanical power',fmt(mp),'J/min',mp>17?pill('alto','bad'):pill('ok','ok'));}
     }
-    if(vt&&fr&&ppeak!==null){const mp=0.098*fr*(vt/1000)*(ppeak-0.5*dp);
-      o+=row('Mechanical power',fmt(mp),'J/min',mp>17?pill('alto','bad'):pill('ok','ok'));}
   }
   if(ppeak!==null&&pplat!==null)o+=row('Resistencia (Ppico−Pplat)',fmt(ppeak-pplat),'cmH₂O');
   /* A menor presión barométrica hay menos oxígeno inspirado, así que el mismo
@@ -339,8 +342,17 @@ function vVent(){
      en altura. El campo de presión ya existía pero sólo lo usaba el A-a.
      Trujillo está a nivel del mar; Cusco, Puno o Huancayo no. */
   if(pao2&&fio2){const pf=pao2/(fio2/100);
-    if(pb<700) o+=row('PaO₂/FiO₂ corregido por altitud',fmt(pf*(760/pb),0),'',
-                      pill('a '+fmt(pb,0)+' mmHg — clasificá por éste','warn'));
+    /* Decía «clasificá por éste» pero la etiqueta de gravedad iba sobre el
+       CRUDO, unas líneas más abajo: el número que hay que usar salía sin
+       etiqueta y el que no hay que usar salía en rojo. En Cusco o Puno eso
+       sobre-diagnostica SDRA. Ahora la etiqueta va donde toca. */
+    if(pb<700){
+      const pfa=pf*(760/pb);
+      const et=(peep!==null&&peep>=5)
+        ? (pfa<=100?pill('SDRA grave','bad'):pfa<=200?pill('SDRA mod','warn'):pfa<=300?pill('SDRA leve','warn'):pill('normal','ok'))
+        : pill('falta PEEP ≥5 para clasificar (Berlin)','warn');
+      o+=row('PaO₂/FiO₂ corregido por altitud (a '+fmt(pb,0)+' mmHg)',fmt(pfa,0),'', et);
+    }
     /* Berlín (JAMA 2012, PMID 22797452) usa <=, no <: grave <=100, moderado
          100-200, leve 200-300. Con `<`, un P/F de exactamente 100 salía
          «moderado» siendo GRAVE, y uno de 300 salía «normal» en verde
@@ -349,7 +361,14 @@ function vVent(){
        dato no se puede etiquetar: un P/F de 150 en gafas nasales no es «SDRA
        moderado», es una hipoxemia sin clasificar. El número se sigue mostrando
        —que es útil igual— pero la etiqueta sólo sale cuando corresponde. */
-    if(peep===null || peep<5){
+    /* En altura el crudo NO se etiqueta: si no, salen dos etiquetas que se
+       contradicen («SDRA mod» arriba, «SDRA leve» abajo) y hay que adivinar
+       cuál vale. La buena es la corregida. */
+    const enAltura = pb<700;
+    if(enAltura){
+      o+=row('PaO₂/FiO₂ (crudo, sin corregir)',fmt(pf,0),'',
+             pill('a esta altura clasificá por el corregido de arriba','warn'));
+    }else if(peep===null || peep<5){
       o+=row('PaO₂/FiO₂',fmt(pf,0),'',
              pill(peep===null ? 'introducí la PEEP: Berlin la exige ≥5 para clasificar'
                               : 'con PEEP '+fmt(peep,0)+' (&lt;5) no aplica la definición de Berlin','warn'));
