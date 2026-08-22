@@ -82,7 +82,48 @@
 <script>
 const $=s=>document.querySelector(s);
 const el=(id)=>document.getElementById(id);
-function num(id){const v=parseFloat((el(id)||{}).value);return isNaN(v)?null:v;}
+/* ── RANGOS FISIOLÓGICOS ────────────────────────────────────────────────
+   No había NI UNA validación en los 46 campos. Tecleando FiO₂ 600 en vez de
+   60, la PaO₂/FiO₂ salía 10 con etiqueta ROJA «SDRA grave» — un número que
+   empuja a prono o ECMO. Y una FiO₂ de 0,5 en vez de 50 daba un gradiente A-a
+   NEGATIVO, físicamente imposible, y se imprimía igual.
+   Los topes son generosos a propósito: marcan lo IMPOSIBLE, no lo infrecuente.
+   Un paciente crítico puede tener cifras extremas y la calculadora debe
+   dejarle trabajar. */
+const RANGOS = {
+  v_fio2:[21,100,'FiO₂ %'],  a_fio2:[21,100,'FiO₂ %'],
+  v_pao2:[10,700,'PaO₂ mmHg'], a_paco2:[5,150,'PaCO₂ mmHg'],
+  v_talla:[100,230,'talla cm'], v_peep:[0,45,'PEEP cmH₂O'], v_pplat:[0,80,'Pmeseta cmH₂O'],
+  v_maw:[0,60,'presión media cmH₂O'], v_pb:[400,800,'presión barométrica mmHg'],
+  a_ph:[6.5,7.9,'pH'], a_na:[90,200,'Na mmol/L'], a_cl:[60,160,'Cl mmol/L'],
+  a_hco3:[1,60,'HCO₃ mmol/L'], a_alb:[0.5,7,'albúmina g/dL'], a_glu:[10,1500,'glucosa mg/dL'],
+  n_na:[90,200,'Na mmol/L'], n_goal:[100,175,'Na objetivo mmol/L'],
+  n_kg:[1,350,'peso kg'], p_kg:[1,350,'peso kg'], e_kg:[1,350,'peso kg'],
+  p_sbp:[20,300,'PAS mmHg'], p_dbp:[10,200,'PAD mmHg'], p_hr:[10,300,'FC lpm'],
+};
+/* Devuelve el aviso si el valor es imposible, o null si se puede usar. */
+function fueraDeRango(id){
+  const r = RANGOS[id]; if(!r) return null;
+  const v = parseFloat((el(id)||{}).value);
+  if(isNaN(v)) return null;                       // vacío no es un error
+  if(v < r[0] || v > r[1]) return r[2]+' fuera de rango ('+r[0]+'–'+r[1]+')';
+  return null;
+}
+function avisoRangos(ids){
+  const malos = ids.map(fueraDeRango).filter(Boolean);
+  if(!malos.length) return '';
+  return '<div class="r" style="border-left:3px solid #ef4444;padding-left:8px">'
+       + '<span class="k">⚠️ Revisá los datos</span><span class="v">'
+       + malos.join(' · ') + '</span></div>';
+}
+function num(id){
+  const v=parseFloat((el(id)||{}).value);
+  if(isNaN(v)) return null;
+  /* Un valor imposible NO se usa: es preferible un «—» a un número serio y
+     falso, que es lo que hace daño. El aviso lo pone avisoRangos(). */
+  if(fueraDeRango(id)) return null;
+  return v;
+}
 function fmt(n,d=1){if(n===null||n===undefined||isNaN(n))return '—';return (Math.round(n*10**d)/10**d).toLocaleString('es-PE');}
 function pill(t,cls){return `<span class="pill ${cls}">${t}</span>`;}
 
@@ -111,6 +152,7 @@ const MODS=[
 {id:'ab',tab:'🧪 Ácido-base',html:`
 <div class="card"><h2>🧪 Gasometría y ácido-base</h2>
  <div class="grid">
+  <div class="f"><label>pH</label><input id="a_ph" type="number" inputmode="decimal" step="0.01" placeholder="7.40"></div>
   <div class="f"><label>Na⁺ (mmol/L)</label><input id="a_na" type="number" inputmode="decimal" placeholder="140"></div>
   <div class="f"><label>Cl⁻ (mmol/L)</label><input id="a_cl" type="number" inputmode="decimal" placeholder="104"></div>
   <div class="f"><label>HCO₃⁻ (mmol/L)</label><input id="a_hco3" type="number" inputmode="decimal" placeholder="24"></div>
@@ -202,7 +244,7 @@ const MODS=[
   <div class="f"><label>PaO₂/FiO₂ + soporte</label><select id="s_resp"><option value="0">≥400</option><option value="1">&lt;400</option><option value="2">&lt;300</option><option value="3">&lt;200 con VM</option><option value="4">&lt;100 con VM</option></select></div>
   <div class="f"><label>Plaquetas (×10³)</label><select id="s_plt"><option value="0">≥150</option><option value="1">&lt;150</option><option value="2">&lt;100</option><option value="3">&lt;50</option><option value="4">&lt;20</option></select></div>
   <div class="f"><label>Bilirrubina (mg/dL)</label><select id="s_bil"><option value="0">&lt;1,2</option><option value="1">1,2–1,9</option><option value="2">2,0–5,9</option><option value="3">6,0–11,9</option><option value="4">≥12</option></select></div>
-  <div class="f"><label>Cardiovascular</label><select id="s_cv"><option value="0">PAM ≥70</option><option value="1">PAM &lt;70</option><option value="2">Dopa ≤5 o dobuta</option><option value="3">NA ≤0,1 / Dopa &gt;5</option><option value="4">NA &gt;0,1</option></select></div>
+  <div class="f"><label>Cardiovascular</label><select id="s_cv"><option value="0">PAM ≥70</option><option value="1">PAM &lt;70</option><option value="2">Dopa ≤5 o dobutamina (cualquier dosis)</option><option value="3">NA ≤0,1 · Adr ≤0,1 · Dopa 5,1–15</option><option value="4">NA &gt;0,1 · Adr &gt;0,1 · Dopa &gt;15</option></select></div>
   <div class="f"><label>Glasgow</label><select id="s_gcs"><option value="0">15</option><option value="1">13–14</option><option value="2">10–12</option><option value="3">6–9</option><option value="4">&lt;6</option></select></div>
   <div class="f"><label>Creatinina / diuresis</label><select id="s_ren"><option value="0">&lt;1,2</option><option value="1">1,2–1,9</option><option value="2">2,0–3,4</option><option value="3">3,5–4,9 o &lt;500 mL/d</option><option value="4">≥5 o &lt;200 mL/d</option></select></div>
  </div><div class="out" id="s_out"></div>
@@ -248,14 +290,18 @@ function vVent(){
   }
   if(ppeak!==null&&pplat!==null)o+=row('Resistencia (Ppico−Pplat)',fmt(ppeak-pplat),'cmH₂O');
   if(pao2&&fio2){const pf=pao2/(fio2/100);
-    o+=row('PaO₂/FiO₂',fmt(pf,0),'', pf<100?pill('SDRA grave','bad'):pf<200?pill('SDRA mod','warn'):pf<300?pill('SDRA leve','warn'):pill('normal','ok'));}
+    /* Berlín (JAMA 2012, PMID 22797452) usa <=, no <: grave <=100, moderado
+         100-200, leve 200-300. Con `<`, un P/F de exactamente 100 salía
+         «moderado» siendo GRAVE, y uno de 300 salía «normal» en verde
+         siendo SDRA leve. Son cifras redondas que aparecen a diario. */
+      o+=row('PaO₂/FiO₂',fmt(pf,0),'', pf<=100?pill('SDRA grave','bad'):pf<=200?pill('SDRA mod','warn'):pf<=300?pill('SDRA leve','warn'):pill('normal','ok'));}
   if(fio2&&maw&&pao2)o+=row('Índice de oxigenación',fmt((fio2*maw)/pao2),'', ((fio2*maw)/pao2)>=16?pill('alto','bad'):pill('ok','ok'));
   if(fio2&&paco2&&pao2){const PAO2=(fio2/100)*(pb-47)-paco2/0.8; o+=row('Gradiente A-a',fmt(PAO2-pao2),'mmHg');}
   el('v_out').innerHTML=o||'<div class="r"><span class="k">Ingresa datos…</span></div>';
 }
 
 function vAB(){
-  const na=num('a_na'),cl=num('a_cl'),hco3=num('a_hco3'),alb=num('a_alb');
+  const ph=num('a_ph'),na=num('a_na'),cl=num('a_cl'),hco3=num('a_hco3'),alb=num('a_alb');
   const paco2=num('a_paco2'),glu=num('a_glu'),bun=num('a_bun'),osmM=num('a_osm');
   let o='';
   if(na&&cl&&hco3!==null){const ag=na-(cl+hco3);
@@ -263,11 +309,53 @@ function vAB(){
     let agc=ag;
     if(alb){agc=ag+2.5*(4-alb); o+=row('AG corregido (albúmina)',fmt(agc),'mmol/L', agc>12?pill('elevado','warn'):pill('normal','ok'));}
     const dd=(agc-12)/(24-hco3);
-    if(hco3<24)o+=row('Delta ratio (Δ/Δ)',fmt(dd,2),'', dd<0.4?pill('+ no-AG','warn'):dd>2?pill('+ alcalosis met','warn'):pill('AGMA pura','ok'));
+    /* El delta ratio SÓLO tiene sentido en una acidosis metabólica con
+       anion gap ELEVADO: mide cuánto subió el AG contra cuánto bajó el
+       bicarbonato. Con un AG normal no significa nada, y se mostraba con
+       cualquier HCO₃<24, etiqueta incluida. */
+    if(hco3<24 && agc>12) o+=row('Delta ratio (Δ/Δ)',fmt(dd,2),'', dd<0.4?pill('+ no-AG','warn'):dd>2?pill('+ alcalosis met','warn'):pill('AGMA pura','ok'));
+    else if(hco3<24) o+=row('Delta ratio (Δ/Δ)','no aplica','', pill('el anion gap no está elevado','ok'));
   }
-  if(hco3!==null&&hco3<22){const winter=1.5*hco3+8;
-    o+=row('PaCO₂ esperado (Winter)',`${fmt(winter-2,0)}–${fmt(winter+2,0)}`,'mmHg');
-    if(paco2)o+=row('Compensación','', '', paco2>winter+2?pill('acidosis resp añadida','bad'):paco2<winter-2?pill('alcalosis resp añadida','warn'):pill('adecuada','ok'));
+  /* ── COMPENSACIÓN, GUIADA POR EL pH ─────────────────────────────────
+     ANTES se aplicaba Winter a cualquier HCO₃<22, SIN pH. Winter sólo vale
+     si el trastorno PRIMARIO es acidosis metabólica. Una alcalosis
+     respiratoria crónica (Na 140, Cl 112, HCO₃ 18, PaCO₂ 25 → pH 7,48)
+     salía como «acidosis metabólica + alcalosis respiratoria añadida»:
+     el diagnóstico al revés. Ahora se identifica primero el trastorno
+     primario, y sólo entonces se aplica la regla que le corresponde. */
+  if(ph===null){
+    if(hco3!==null&&(hco3<22||hco3>26))
+      o+=row('Compensación','—','', pill('falta el pH para saber el trastorno primario','warn'));
+  }else{
+    const acid=ph<7.35, alca=ph>7.45;
+    const esp=(v,t)=>fmt(v-t,0)+'–'+fmt(v+t,0);
+    const juzga=(v,t,real)=> real===null?'' :
+      real>v+t?pill('además, componente respiratorio ácido','warn') :
+      real<v-t?pill('además, componente respiratorio alcalino','warn') :
+      pill('compensación adecuada','ok');
+    const juzgaH=(a,c,real)=> real===null?'' :
+      real>Math.max(a,c)+2?pill('+ alcalosis metabólica','warn') :
+      real<Math.min(a,c)-2?pill('+ acidosis metabólica','warn') :
+      pill('dentro de lo esperado','ok');
+    if(acid && hco3!==null && hco3<22){
+      const w=1.5*hco3+8;
+      o+=row('Trastorno primario','acidosis metabólica','', pill('pH '+fmt(ph,2),'bad'));
+      o+=row('PaCO₂ esperado (Winter)',esp(w,2),'mmHg', juzga(w,2,paco2));
+    }else if(alca && hco3!==null && hco3>26){
+      const w=0.7*hco3+21;
+      o+=row('Trastorno primario','alcalosis metabólica','', pill('pH '+fmt(ph,2),'warn'));
+      o+=row('PaCO₂ esperado',esp(w,2),'mmHg', juzga(w,2,paco2));
+    }else if(acid && paco2!==null && paco2>45){
+      const ag=24+1.0*(paco2-40)/10, cr=24+3.5*(paco2-40)/10;
+      o+=row('Trastorno primario','acidosis respiratoria','', pill('pH '+fmt(ph,2),'bad'));
+      o+=row('HCO₃ esperado','aguda '+fmt(ag,1)+' · crónica '+fmt(cr,1),'mmol/L', juzgaH(ag,cr,hco3));
+    }else if(alca && paco2!==null && paco2<35){
+      const ag=24-2.0*(40-paco2)/10, cr=24-4.0*(40-paco2)/10;
+      o+=row('Trastorno primario','alcalosis respiratoria','', pill('pH '+fmt(ph,2),'warn'));
+      o+=row('HCO₃ esperado','aguda '+fmt(ag,1)+' · crónica '+fmt(cr,1),'mmol/L', juzgaH(ag,cr,hco3));
+    }else if(!acid && !alca && hco3!==null && (hco3<22||hco3>26)){
+      o+=row('Trastorno primario','pH normal con HCO₃ alterado','', pill('sospechá trastorno mixto','warn'));
+    }
   }
   if(na&&glu!==null&&bun!==null){const oc=2*na+glu/18+bun/2.8;
     o+=row('Osmolaridad calculada',fmt(oc,0),'mOsm/kg');
@@ -306,8 +394,17 @@ function vRen(){
     o+=row('CKD-EPI 2021 (eGFR)',fmt(egfr,0),'mL/min/1,73', egfr<15?pill('G5','bad'):egfr<30?pill('G4','bad'):egfr<60?pill('G3','warn'):pill('G1-2','ok'));}
   const pna=num('r_una')!==null?num('n_na'):null; // no usado
   const naP=num('a_na'); // reutiliza si existe
-  if(una!==null&&ucr&&cr){const PNa=num('a_na')||140; const fena=(una*cr)/(PNa*ucr)*100;
-    o+=row('FeNa',fmt(fena,2),'%', fena<1?pill('prerrenal','ok'):fena>2?pill('NTA','warn'):pill('indeterm.','warn'));}
+  /* ANTES: `num('a_na')||140` — si no habías llenado el sodio en la OTRA
+     pestaña, asumía 140 EN SILENCIO. Con un Na real de 125 el FeNa salía un
+     12% equivocado y nada lo advertía. Ahora se pide, y si no está, se dice. */
+  if(una!==null&&ucr&&cr){
+    const PNa=num('a_na');
+    if(PNa===null){
+      o+=row('FeNa','—','', pill('falta el Na del plasma (pestaña Gasometría)','warn'));
+    }else{
+      const fena=(una*cr)/(PNa*ucr)*100;
+      o+=row('FeNa',fmt(fena,2),'%', fena<1?pill('prerrenal','ok'):fena>2?pill('NTA','warn'):pill('indeterm.','warn'));
+    }}
   if(uur&&pur&&ucr&&cr){const feu=(uur*cr)/(pur*ucr)*100;
     o+=row('FeUrea',fmt(feu,1),'%', feu<35?pill('prerrenal','ok'):pill('intrínseco','warn'));}
   el('r_out').innerHTML=o||'<div class="r"><span class="k">Ingresa datos…</span></div>';
@@ -325,7 +422,14 @@ function vVaso(){
     if(dose&&kg)o+=row('→ Velocidad',fmt(dose*kg*60/conc,1),'mL/h');
     if(rate&&kg)o+=row('→ Dosis',fmt(rate*conc/(kg*60),3),'µg/kg/min');
   }
-  const na=(dose||0)+epi+phe/10+dopa/100+vp*2.5;
+  /* La dosis de noradrenalina puede venir por el campo de dosis O deducirse
+     de la velocidad. Antes se usaba sólo `dose`: si metías mL/h, la
+     noradrenalina contaba CERO y un paciente a 0,5 µg/kg/min salía sin la
+     etiqueta de «shock refractario». Infra-estimaba la gravedad justo en el
+     caso peor. */
+  let naDosis = dose||0;
+  if(!naDosis && rate && kg && mg && vol) naDosis = rate*((mg*1000)/vol)/(kg*60);
+  const na=naDosis+epi+phe/10+dopa/100+vp*2.5;
   if(na>0)o+=row('Equivalentes de NA',fmt(na,3),'µg/kg/min', na>0.5?pill('shock refractario','bad'):na>0.25?pill('alto','warn'):pill('','ok'));
   el('p_out').innerHTML=o||'<div class="r"><span class="k">Ingresa datos…</span></div>';
 }
