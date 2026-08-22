@@ -90,16 +90,44 @@ const el=(id)=>document.getElementById(id);
    Los topes son generosos a propósito: marcan lo IMPOSIBLE, no lo infrecuente.
    Un paciente crítico puede tener cifras extremas y la calculadora debe
    dejarle trabajar. */
+/* Los límites no son «lo normal»: son lo FISIOLÓGICAMENTE POSIBLE. Un valor
+   dentro del rango no se avisa aunque sea muy patológico; sólo se avisa lo que
+   no puede existir en un paciente, que casi siempre es un decimal corrido al
+   teclear.
+   OJO: la clave tiene que ser el id REAL del campo. Había tres rangos —v_talla,
+   a_fio2 y e_kg— que apuntaban a campos que no existen, así que no saltaban
+   nunca: la talla, que decide el peso predicho y con él el volumen tidal del
+   ventilador, no se validaba en absoluto. */
 const RANGOS = {
-  v_fio2:[21,100,'FiO₂ %'],  a_fio2:[21,100,'FiO₂ %'],
-  v_pao2:[10,700,'PaO₂ mmHg'], a_paco2:[5,150,'PaCO₂ mmHg'],
-  v_talla:[100,230,'talla cm'], v_peep:[0,45,'PEEP cmH₂O'], v_pplat:[0,80,'Pmeseta cmH₂O'],
-  v_maw:[0,60,'presión media cmH₂O'], v_pb:[400,800,'presión barométrica mmHg'],
+  /* ── Ventilación ── */
+  v_fio2:[21,100,'FiO₂ %'], v_pao2:[10,700,'PaO₂ mmHg'],
+  v_paco2:[5,200,'PaCO₂ mmHg'],
+  v_h:[100,230,'talla cm'], v_peep:[0,45,'PEEP cmH₂O'], v_pplat:[0,80,'Pmeseta cmH₂O'],
+  v_ppeak:[0,120,'Ppico cmH₂O'], v_maw:[0,60,'presión media cmH₂O'],
+  v_pb:[400,800,'presión barométrica mmHg'], v_fr:[1,80,'FR rpm'],
+  v_vt:[20,2500,'Vt mL'],
+  /* ── Ácido-base ── */
   a_ph:[6.5,7.9,'pH'], a_na:[90,200,'Na mmol/L'], a_cl:[60,160,'Cl mmol/L'],
-  a_hco3:[1,60,'HCO₃ mmol/L'], a_alb:[0.5,7,'albúmina g/dL'], a_glu:[10,1500,'glucosa mg/dL'],
+  a_hco3:[1,60,'HCO₃ mmol/L'], a_alb:[0.5,7,'albúmina g/dL'],
+  a_glu:[10,1500,'glucosa mg/dL'], a_paco2:[5,200,'PaCO₂ mmHg'],
+  a_bun:[1,500,'BUN/urea mg/dL'], a_osm:[200,450,'osmolalidad mOsm/kg'],
+  /* ── Sodio ── */
   n_na:[90,200,'Na mmol/L'], n_goal:[100,175,'Na objetivo mmol/L'],
-  n_kg:[1,350,'peso kg'], p_kg:[1,350,'peso kg'], e_kg:[1,350,'peso kg'],
-  p_sbp:[20,300,'PAS mmHg'], p_dbp:[10,200,'PAD mmHg'], p_hr:[10,300,'FC lpm'],
+  n_kg:[1,350,'peso kg'], n_glu:[10,2000,'glucosa mg/dL'],
+  n_kadd:[0,150,'K⁺ agregado mEq/L'],
+  /* ── Renal ── */
+  r_age:[0,120,'edad años'], r_kg:[1,350,'peso kg'], r_cr:[0.1,30,'creatinina mg/dL'],
+  r_una:[1,300,'Na orina mmol/L'], r_ucr:[1,600,'Cr orina mg/dL'],
+  r_uur:[10,5000,'urea orina mg/dL'], r_pur:[2,600,'urea plasma mg/dL'],
+  /* ── Presores ── */
+  p_kg:[1,350,'peso kg'], p_sbp:[20,300,'PAS mmHg'], p_dbp:[10,200,'PAD mmHg'],
+  p_hr:[10,300,'FC lpm'], p_mg:[0.01,10000,'mg en la dilución'],
+  p_vol:[1,2000,'volumen mL'], p_dose:[0,100,'dosis µg/kg/min'],
+  p_rate:[0,1000,'velocidad mL/h'],
+  p_epi:[0,10,'adrenalina µg/kg/min'], p_dopa:[0,50,'dopamina µg/kg/min'],
+  p_phe:[0,20,'fenilefrina µg/kg/min'], p_vp:[0,1,'vasopresina U/min'],
+  /* ── Electrolitos y nutrición ── */
+  e_ca:[3,20,'calcio mg/dL'], e_alb:[0.5,7,'albúmina g/dL'], u_kg:[1,350,'peso kg'],
 };
 /* Devuelve el aviso si el valor es imposible, o null si se puede usar. */
 function fueraDeRango(id){
@@ -176,10 +204,14 @@ const MODS=[
   <div class="f"><label>Sexo/edad</label><select id="n_sex"><option value="0.6">Hombre</option><option value="0.5">Mujer</option><option value="0.5b">Hombre anciano</option><option value="0.45">Mujer anciana</option></select></div>
   <div class="f"><label>Na⁺ objetivo (mmol/L)</label><input id="n_goal" type="number" inputmode="decimal" placeholder="140"></div>
   <div class="f"><label>Fluido a infundir</label><select id="n_fluid"><option value="513">NaCl 3% (513)</option><option value="154">NaCl 0,9% (154)</option><option value="134">Ringer lactato (Na+K 134)</option><option value="77">NaCl 0,45% (77)</option><option value="0">Dextrosa 5% (0)</option></select></div>
+  <div class="f" style="grid-column:1/-1"><label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-weight:400">
+     <input id="n_riesgo" type="checkbox" style="width:auto;margin:3px 0 0 0;flex:0 0 auto">
+     <span>Alto riesgo de desmielinización osmótica (Na ≤105, alcoholismo, desnutrición, hipopotasemia, hepatopatía) → tope 6 mmol/L/24 h</span>
+   </label></div>
   <div class="f"><label>K⁺ agregado (mEq/L)</label><input id="n_kadd" type="number" inputmode="decimal" placeholder="0"></div>
  </div>
  <div class="out" id="n_out"></div>
- <div class="note"><b>Na corr glucosa</b>=Na+factor·((glu−100)/100) [1,6; <b>2,4 si glu&gt;400</b>]. <b>Agua corporal</b>=peso·factor. <b>Déficit agua libre</b>=ACT·(Na/140−1). <b>Adrogué-Madias</b> ΔNa(1 L)=(Na+K del fluido−Na)/(ACT+1) — <b>incluye el K⁺</b> (Ringer aporta 4). ⚠️ Corrección <b>≤8 mmol/L/24 h</b> (≤6 en alto riesgo: Na≤105, hipoK, alcoholismo, desnutrición, hepatopatía). No cuenta pérdidas en curso; controlar Na c/2–4 h.</div>
+ <div class="note"><b>Na corr glucosa</b>=Na+factor·((glu−100)/100) [1,6; con glu&gt;400 se muestra el <b>rango 1,6–4,0</b> (Hillier), no una cifra única]. <b>Agua corporal</b>=peso·factor. <b>Déficit agua libre</b>=ACT·(Na/140−1). <b>Adrogué-Madias</b> ΔNa(1 L)=(Na+K del fluido−Na)/(ACT+1) — <b>incluye el K⁺</b> (Ringer aporta 4). ⚠️ Corrección <b>≤8 mmol/L/24 h</b> (≤6 en alto riesgo: Na≤105, hipoK, alcoholismo, desnutrición, hepatopatía). No cuenta pérdidas en curso; controlar Na c/2–4 h.</div>
 </div>`,calc:vNa},
 
 {id:'ren',tab:'🩸 Renal',html:`
@@ -313,7 +345,17 @@ function vVent(){
          100-200, leve 200-300. Con `<`, un P/F de exactamente 100 salía
          «moderado» siendo GRAVE, y uno de 300 salía «normal» en verde
          siendo SDRA leve. Son cifras redondas que aparecen a diario. */
-      o+=row('PaO₂/FiO₂',fmt(pf,0),'', pf<=100?pill('SDRA grave','bad'):pf<=200?pill('SDRA mod','warn'):pf<=300?pill('SDRA leve','warn'):pill('normal','ok'));}
+    /* Y la definición mide ese cociente CON PEEP o CPAP ≥5 cmH₂O. Sin ese
+       dato no se puede etiquetar: un P/F de 150 en gafas nasales no es «SDRA
+       moderado», es una hipoxemia sin clasificar. El número se sigue mostrando
+       —que es útil igual— pero la etiqueta sólo sale cuando corresponde. */
+    if(peep===null || peep<5){
+      o+=row('PaO₂/FiO₂',fmt(pf,0),'',
+             pill(peep===null ? 'introducí la PEEP: Berlin la exige ≥5 para clasificar'
+                              : 'con PEEP '+fmt(peep,0)+' (&lt;5) no aplica la definición de Berlin','warn'));
+    }else{
+      o+=row('PaO₂/FiO₂',fmt(pf,0),'', pf<=100?pill('SDRA grave','bad'):pf<=200?pill('SDRA mod','warn'):pf<=300?pill('SDRA leve','warn'):pill('normal','ok'));
+    }}
   if(fio2&&maw&&pao2)o+=row('Índice de oxigenación',fmt((fio2*maw)/pao2),'', ((fio2*maw)/pao2)>=16?pill('≥16 — corte PALICC (pediátrico), sin equivalente validado en adultos','warn'):pill('corte de referencia pediátrico','ok'));
   if(fio2&&paco2&&pao2){
       const PAO2=(fio2/100)*(pb-47)-paco2/0.8, aa=PAO2-pao2;
@@ -331,7 +373,7 @@ function vVent(){
       }
       o+=row('Gradiente A-a',fmt(aa),'mmHg', ref);
     }
-  o = avisoRangos(['v_fio2','v_pao2','v_talla','v_peep','v_pplat','v_maw','v_pb']) + o;
+  o = avisoRangos(['v_fio2','v_pao2','v_paco2','v_h','v_peep','v_pplat','v_ppeak','v_maw','v_pb','v_fr','v_vt']) + o;
   el('v_out').innerHTML=o||'<div class="r"><span class="k">Ingresa datos…</span></div>';
 }
 
@@ -410,7 +452,7 @@ function vAB(){
            esUrea?pill('urea convertida a BUN (÷2,14)','ok'):'');
     if(osmM)o+=row('Gap osmolar',fmt(osmM-oc),'', (osmM-oc)>10?pill('elevado','bad'):pill('normal','ok'));
   }
-  o = avisoRangos(['a_ph','a_na','a_cl','a_hco3','a_alb','a_paco2','a_glu']) + o;
+  o = avisoRangos(['a_ph','a_na','a_cl','a_hco3','a_alb','a_paco2','a_glu','a_bun','a_osm']) + o;
   el('a_out').innerHTML=o||'<div class="r"><span class="k">Ingresa datos…</span></div>';
 }
 
@@ -443,8 +485,19 @@ function vNa(){
        bajar hasta 140: más agua de la que toca. */
     if(na>145){
       const destino = goal || 140;
-      o+=row('Déficit de agua libre',fmt(act*(na/destino-1)),'L',
-             pill('hasta Na '+fmt(destino,0)+(goal?'':' (por defecto)'),'ok'));
+      o+=row('Déficit de agua libre (TOTAL)',fmt(act*(na/destino-1)),'L',
+             pill('hasta Na '+fmt(destino,0)+(goal?'':' (por defecto)')+' · NO es el volumen de hoy','warn'));
+      /* La rama de hiponatremia sí topaba la velocidad; ésta no topaba nada y
+         el total salía en verde. Bajar el sodio deprisa provoca edema
+         cerebral: el límite aceptado es 10-12 mmol/L/24 h (~0,5/h). */
+      const destino24 = Math.max(destino, na-10);
+      if(destino24 > destino + 0.5){
+        o+=row('Déficit de las primeras 24 h',fmt(act*(na/destino24-1)),'L',
+               pill('bajar como mucho a Na '+fmt(destino24,0)+' hoy (≤10 mmol/L/24 h) · el resto en días sucesivos','bad'));
+      }else{
+        o+=row('Déficit de las primeras 24 h',fmt(act*(na/destino-1)),'L',
+               pill('la corrección completa cabe en ≤10 mmol/L/24 h','ok'));
+      }
     }
     const kadd=num('n_kadd')||0;const dNa=(fluid+kadd-na)/(act+1);
     o+=row('ΔNa⁺ por 1 L (Adrogué)',fmt(dNa,2),'mmol/L', Math.abs(dNa)>0?'':'' );
@@ -457,15 +510,20 @@ function vNa(){
        («−10,12 L» con NaCl 0,45%): eso ya no se imprime como un número. */
     if(goal&&Math.abs(dNa)>0.01){
       const subiendo = goal>na;
-      const goalSeguro = subiendo ? Math.min(goal, na+8) : Math.max(goal, na-8);
+      /* En alto riesgo de desmielinización osmótica (Na ≤105, alcoholismo,
+         desnutrición, hipopotasemia, hepatopatía) el límite baja a 4-6
+         mmol/L/24 h. No había forma de pedirlo. */
+      const altoRiesgo = !!(el('n_riesgo') && el('n_riesgo').checked) || na<=105;
+      const TOPE = altoRiesgo ? 6 : 8;
+      const goalSeguro = subiendo ? Math.min(goal, na+TOPE) : Math.max(goal, na-TOPE);
       const need=(goalSeguro-na)/dNa;
       if(need<0){
         o+=row('Vol. para llegar al objetivo','—','', pill('este fluido mueve el Na al revés: elegí otro','bad'));
       }else{
-        const topado = Math.abs(goal-na)>8;
+        const topado = Math.abs(goal-na)>TOPE;
         o+=row('Volumen (primeras 24 h)',fmt(need,2),'L',
                topado?pill('objetivo 24 h = '+fmt(goalSeguro,0)+' mmol/L · el resto en días sucesivos','bad')
-                     :pill('dentro de ≤8 mmol/L/24 h','ok'));
+                     :pill('dentro de ≤'+TOPE+' mmol/L/24 h'+(altoRiesgo?' (alto riesgo)':''),'ok'));
       }
     }
   }
@@ -486,7 +544,7 @@ function vNa(){
            tono<275?pill('hipotónica','warn'):tono>295?pill('hipertónica','warn'):pill('isotónica','ok'))
      + (glu===null?'<div class="r"><span class="k"></span><span class="v" style="color:var(--mut);font-size:.8rem">sin glucosa: sólo 2·Na</span></div>':'');
   }
-  o = avisoRangos(['n_na','n_goal','n_kg']) + o;
+  o = avisoRangos(['n_na','n_goal','n_kg','n_glu','n_kadd']) + o;
   el('n_out').innerHTML=o||'<div class="r"><span class="k">Ingresa datos…</span></div>';
 }
 
@@ -526,6 +584,9 @@ function vRen(){
        sentido equivocado. Los dos campos deben llevar la MISMA magnitud. */
     o+=row('FeUrea',fmt(feu,1),'%', feu<35?pill('prerrenal','ok'):pill('intrínseco','warn'));
     o+=row('','','', pill('usá la misma magnitud (urea o BUN) en orina y en plasma','ok'));}
+  /* Este módulo no avisaba de NADA: una creatinina o una edad con el decimal
+     corrido daban un aclaramiento negativo impreso sin una sola advertencia. */
+  o = avisoRangos(['r_age','r_kg','r_cr','r_una','r_ucr','r_uur','r_pur']) + o;
   el('r_out').innerHTML=o||'<div class="r"><span class="k">Ingresa datos…</span></div>';
 }
 
@@ -556,7 +617,7 @@ function vVaso(){
   if(!naDosis && rate && kg && mg && vol) naDosis = rate*((mg*1000)/vol)/(kg*60);
   const na=naDosis+epi+phe/10+dopa/100+vp*2.5;
   if(na>0)o+=row('Equivalentes de NA',fmt(na,3),'µg/kg/min', na>0.5?pill('shock refractario','bad'):na>0.25?pill('alto','warn'):pill('','ok'));
-  o = avisoRangos(['p_kg','p_sbp','p_dbp','p_hr']) + o;
+  o = avisoRangos(['p_kg','p_sbp','p_dbp','p_hr','p_mg','p_vol','p_dose','p_rate','p_epi','p_dopa','p_phe','p_vp']) + o;
   el('p_out').innerHTML=o||'<div class="r"><span class="k">Ingresa datos…</span></div>';
 }
 
@@ -579,8 +640,9 @@ function vNut(){
      transfusión masiva se despega de la realidad. El único valor de confianza
      es el calcio IÓNICO. Darlo a secas invita a tratar sobre un dato que en
      ese contexto no vale. */
-  el('e_out').innerHTML=(ca&&alb!==null)?(row('Ca corregido',fmt(ca+0.8*(4-alb),2),'mg/dL',
-      pill('en el crítico pedí calcio IÓNICO: esta corrección es poco fiable','warn'))):'<div class="r"><span class="k">Ingresa datos…</span></div>';
+  const avisoE = avisoRangos(['e_ca','e_alb']);
+  el('e_out').innerHTML=avisoE+((ca&&alb!==null)?(row('Ca corregido',fmt(ca+0.8*(4-alb),2),'mg/dL',
+      pill('en el crítico pedí calcio IÓNICO: esta corrección es poco fiable','warn'))):'<div class="r"><span class="k">Ingresa datos…</span></div>');
   const kg=num('u_kg'),kc=parseFloat(el('u_kcal').value),pr=parseFloat(el('u_pro').value);
   let o='';
   /* Multiplicar por el peso REAL sobrealimenta al obeso: las guías
@@ -592,6 +654,7 @@ function vNut(){
     o+=row('Calculado sobre','el peso que introdujiste','',
            pill('en obesidad usá peso ajustado o ideal, no el real','warn'));
   }
+  o = avisoRangos(['u_kg']) + o;
   el('u_out').innerHTML=o||'<div class="r"><span class="k">Ingresa peso…</span></div>';
 }
 
