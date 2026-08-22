@@ -245,7 +245,7 @@ const MODS=[
   <div class="f"><label>PaO₂/FiO₂ + soporte</label><select id="s_resp"><option value="0">≥400</option><option value="1">&lt;400</option><option value="2">&lt;300</option><option value="3">&lt;200 con VM</option><option value="4">&lt;100 con VM</option></select></div>
   <div class="f"><label>Plaquetas (×10³)</label><select id="s_plt"><option value="0">≥150</option><option value="1">&lt;150</option><option value="2">&lt;100</option><option value="3">&lt;50</option><option value="4">&lt;20</option></select></div>
   <div class="f"><label>Bilirrubina (mg/dL)</label><select id="s_bil"><option value="0">&lt;1,2</option><option value="1">1,2–1,9</option><option value="2">2,0–5,9</option><option value="3">6,0–11,9</option><option value="4">≥12</option></select></div>
-  <div class="f"><label>Cardiovascular</label><select id="s_cv"><option value="0">PAM ≥70</option><option value="1">PAM &lt;70</option><option value="2">Dopa ≤5 o dobutamina (cualquier dosis)</option><option value="3">NA ≤0,1 · Adr ≤0,1 · Dopa 5,1–15</option><option value="4">NA &gt;0,1 · Adr &gt;0,1 · Dopa &gt;15</option></select></div>
+  <div class="f"><label>Cardiovascular</label><select id="s_cv"><option value="0">PAM ≥70</option><option value="1">PAM &lt;70</option><option value="2">Dopa ≤5 µg/kg/min o dobutamina (cualquier dosis)</option><option value="3">NA ≤0,1 · Adr ≤0,1 · Dopa 5,1–15 (µg/kg/min)</option><option value="4">NA &gt;0,1 · Adr &gt;0,1 · Dopa &gt;15 (µg/kg/min)</option></select></div>
   <div class="f"><label>Glasgow</label><select id="s_gcs"><option value="0">15</option><option value="1">13–14</option><option value="2">10–12</option><option value="3">6–9</option><option value="4">&lt;6</option></select></div>
   <div class="f"><label>Creatinina / diuresis</label><select id="s_ren"><option value="0">&lt;1,2</option><option value="1">1,2–1,9</option><option value="2">2,0–3,4</option><option value="3">3,5–4,9 o &lt;500 mL/d</option><option value="4">≥5 o &lt;200 mL/d</option></select></div>
  </div><div class="out" id="s_out"></div>
@@ -278,7 +278,10 @@ function vVent(){
   const pao2=num('v_pao2'), fio2=num('v_fio2'), paco2=num('v_paco2'), pb=num('v_pb')||760;
   let o='';
   let pbw=null;
-  if(h){pbw=(sex==='h'?50:45.5)+0.91*(h-152.4); pbw=Math.max(pbw,0);
+  /* `Math.max(pbw,0)` escondía el error: con una talla absurda el peso
+     predicho se quedaba en 0 y el «Vt/PBW» salía disparatado pero con
+     píldora. Un recorte silencioso disfraza el dato malo de dato bueno. */
+  if(h && h>=130 && h<=220){pbw=(sex==='h'?50:45.5)+0.91*(h-152.4);
     o+=row('Peso predicho (PBW)',fmt(pbw),'kg');
     o+=row('Vt objetivo 6 mL/kg',fmt(6*pbw,0),'mL',` <small>(4–8: ${fmt(4*pbw,0)}–${fmt(8*pbw,0)})</small>`);
     if(vt)o+=row('Vt actual / PBW',fmt(vt/pbw),'mL/kg', (vt/pbw>8?pill('alto','bad'):vt/pbw>6.5?pill('límite','warn'):pill('protector','ok')));
@@ -299,14 +302,35 @@ function vVent(){
       o+=row('Mechanical power',fmt(mp),'J/min',mp>17?pill('alto','bad'):pill('ok','ok'));}
   }
   if(ppeak!==null&&pplat!==null)o+=row('Resistencia (Ppico−Pplat)',fmt(ppeak-pplat),'cmH₂O');
+  /* A menor presión barométrica hay menos oxígeno inspirado, así que el mismo
+     pulmón da un P/F más bajo: clasificar por el crudo SOBRE-diagnostica SDRA
+     en altura. El campo de presión ya existía pero sólo lo usaba el A-a.
+     Trujillo está a nivel del mar; Cusco, Puno o Huancayo no. */
   if(pao2&&fio2){const pf=pao2/(fio2/100);
+    if(pb<700) o+=row('PaO₂/FiO₂ corregido por altitud',fmt(pf*(760/pb),0),'',
+                      pill('a '+fmt(pb,0)+' mmHg — clasificá por éste','warn'));
     /* Berlín (JAMA 2012, PMID 22797452) usa <=, no <: grave <=100, moderado
          100-200, leve 200-300. Con `<`, un P/F de exactamente 100 salía
          «moderado» siendo GRAVE, y uno de 300 salía «normal» en verde
          siendo SDRA leve. Son cifras redondas que aparecen a diario. */
       o+=row('PaO₂/FiO₂',fmt(pf,0),'', pf<=100?pill('SDRA grave','bad'):pf<=200?pill('SDRA mod','warn'):pf<=300?pill('SDRA leve','warn'):pill('normal','ok'));}
-  if(fio2&&maw&&pao2)o+=row('Índice de oxigenación',fmt((fio2*maw)/pao2),'', ((fio2*maw)/pao2)>=16?pill('alto','bad'):pill('ok','ok'));
-  if(fio2&&paco2&&pao2){const PAO2=(fio2/100)*(pb-47)-paco2/0.8; o+=row('Gradiente A-a',fmt(PAO2-pao2),'mmHg');}
+  if(fio2&&maw&&pao2)o+=row('Índice de oxigenación',fmt((fio2*maw)/pao2),'', ((fio2*maw)/pao2)>=16?pill('≥16 — corte PALICC (pediátrico), sin equivalente validado en adultos','warn'):pill('corte de referencia pediátrico','ok'));
+  if(fio2&&paco2&&pao2){
+      const PAO2=(fio2/100)*(pb-47)-paco2/0.8, aa=PAO2-pao2;
+      /* Era la única fila sin píldora: un número sin referencia no dice nada.
+         Con aire ambiente el normal es ~edad/4+4; con oxígeno suplementario
+         ese ajuste NO vale, y callarlo es peor que decirlo. */
+      const edad = num('r_age');
+      let ref = '';
+      if(fio2<=25){
+        const esp = edad ? (edad/4+4) : 15;
+        ref = aa>esp ? pill('elevado (esperado ≤'+fmt(esp,0)+(edad?' para su edad':'')+')','warn')
+                     : pill('normal (≤'+fmt(esp,0)+')','ok');
+      }else{
+        ref = pill('con O₂ suplementario el rango normal por edad no aplica','ok');
+      }
+      o+=row('Gradiente A-a',fmt(aa),'mmHg', ref);
+    }
   o = avisoRangos(['v_fio2','v_pao2','v_talla','v_peep','v_pplat','v_maw','v_pb']) + o;
   el('v_out').innerHTML=o||'<div class="r"><span class="k">Ingresa datos…</span></div>';
 }
@@ -316,7 +340,13 @@ function vAB(){
   const paco2=num('a_paco2'),glu=num('a_glu'),bun=num('a_bun'),osmM=num('a_osm');
   let o='';
   if(na&&cl&&hco3!==null){const ag=na-(cl+hco3);
-    o+=row('Anion gap',fmt(ag),'mmol/L', ag>12?pill('elevado','warn'):pill('normal','ok'));
+    /* El [8-12] viene de los analizadores antiguos; con los electrodos selectivos
+         de hoy el normal es más bajo (~3-11), así que un AG de 11-12 puede estar
+         elevado y salir en verde. No se cambia el umbral sin saber qué
+         analizador usa su laboratorio —eso sería peor— pero se dice. */
+      o+=row('Anion gap',fmt(ag),'mmol/L', ag>12?pill('elevado','warn')
+             :ag>=11?pill('límite — con electrodos modernos ya puede ser alto','warn')
+             :pill('normal','ok'));
     let agc=ag;
     if(alb){agc=ag+2.5*(4-alb); o+=row('AG corregido (albúmina)',fmt(agc),'mmol/L', agc>12?pill('elevado','warn'):pill('normal','ok'));}
     const dd=(agc-12)/(24-hco3);
@@ -324,7 +354,7 @@ function vAB(){
        anion gap ELEVADO: mide cuánto subió el AG contra cuánto bajó el
        bicarbonato. Con un AG normal no significa nada, y se mostraba con
        cualquier HCO₃<24, etiqueta incluida. */
-    if(hco3<24 && agc>12) o+=row('Delta ratio (Δ/Δ)',fmt(dd,2),'', dd<0.4?pill('+ no-AG','warn'):dd>2?pill('+ alcalosis met','warn'):pill('AGMA pura','ok'));
+    if(hco3<24 && agc>12) o+=row('Delta ratio (Δ/Δ)',fmt(dd,2),'', dd<0.4?pill('+ acidosis no-AG','warn'):dd<1?pill('AGMA + hiperclorémica (mixta)','warn'):dd<=2?pill('AGMA pura','ok'):pill('+ alcalosis metabólica','warn'));
     else if(hco3<24) o+=row('Delta ratio (Δ/Δ)','no aplica','', pill('el anion gap no está elevado','ok'));
   }
   /* ── COMPENSACIÓN, GUIADA POR EL pH ─────────────────────────────────
@@ -407,7 +437,15 @@ function vNa(){
   let act=null;
   if(kg){act=kg*factor; o+=row('Agua corporal total',fmt(act),'L');}
   if(act&&na){
-    if(na>145)o+=row('Déficit de agua libre',fmt(act*(na/140-1)),'L');
+    /* El 140 estaba clavado a mano e ignoraba el campo «Na objetivo», que
+       existe y se usa dos líneas más abajo. Si pedías corregir hasta 150 —lo
+       prudente en una hipernatremia crónica— el número que salía era el de
+       bajar hasta 140: más agua de la que toca. */
+    if(na>145){
+      const destino = goal || 140;
+      o+=row('Déficit de agua libre',fmt(act*(na/destino-1)),'L',
+             pill('hasta Na '+fmt(destino,0)+(goal?'':' (por defecto)'),'ok'));
+    }
     const kadd=num('n_kadd')||0;const dNa=(fluid+kadd-na)/(act+1);
     o+=row('ΔNa⁺ por 1 L (Adrogué)',fmt(dNa,2),'mmol/L', Math.abs(dNa)>0?'':'' );
     /* TOPE DE VELOCIDAD. Antes, con Na 110 y objetivo 140 imprimía «3,20 L»
@@ -437,6 +475,16 @@ function vNa(){
     const seg=Math.min(goal, na+8);
     o+=row('Déficit de Na⁺ (total)',fmt(act*(goal-na),0),'mmol',
            (goal-na)>8?pill('en 24 h sólo hasta '+fmt(act*(seg-na),0)+' mmol','warn'):'');
+  }
+  /* El módulo se llama «Sodio, agua y osmolaridad» y no calculaba ninguna.
+     La TONICIDAD (osmolalidad efectiva) es la que decide si una hiponatremia
+     es verdadera o falsa: 2·Na + glucosa/18, SIN la urea — la urea atraviesa
+     la membrana y no arrastra agua, así que no aporta tonicidad. */
+  if(na){
+    const tono = 2*na + (glu!==null?glu/18:0);
+    o+=row('Osmolalidad efectiva (tonicidad)',fmt(tono,0),'mOsm/kg',
+           tono<275?pill('hipotónica','warn'):tono>295?pill('hipertónica','warn'):pill('isotónica','ok'))
+     + (glu===null?'<div class="r"><span class="k"></span><span class="v" style="color:var(--mut);font-size:.8rem">sin glucosa: sólo 2·Na</span></div>':'');
   }
   o = avisoRangos(['n_na','n_goal','n_kg']) + o;
   el('n_out').innerHTML=o||'<div class="r"><span class="k">Ingresa datos…</span></div>';
@@ -473,7 +521,11 @@ function vRen(){
       o+=row('FeNa',fmt(fena,2),'%', fena<1?pill('prerrenal','ok'):fena>2?pill('NTA','warn'):pill('indeterm.','warn'));
     }}
   if(uur&&pur&&ucr&&cr){const feu=(uur*cr)/(pur*ucr)*100;
-    o+=row('FeUrea',fmt(feu,1),'%', feu<35?pill('prerrenal','ok'):pill('intrínseco','warn'));}
+    /* Si en un campo se teclea el BUN del plasma y en el otro la urea de la
+       orina, el cociente se va un factor 2,14 y cruza el umbral del 35% en el
+       sentido equivocado. Los dos campos deben llevar la MISMA magnitud. */
+    o+=row('FeUrea',fmt(feu,1),'%', feu<35?pill('prerrenal','ok'):pill('intrínseco','warn'));
+    o+=row('','','', pill('usá la misma magnitud (urea o BUN) en orina y en plasma','ok'));}
   el('r_out').innerHTML=o||'<div class="r"><span class="k">Ingresa datos…</span></div>';
 }
 
@@ -482,7 +534,13 @@ function vVaso(){
   const mg=num('p_mg'),vol=num('p_vol'),dose=num('p_dose'),rate=num('p_rate');
   const epi=num('p_epi')||0,dopa=num('p_dopa')||0,phe=num('p_phe')||0,vp=num('p_vp')||0;
   let o='';
-  if(sbp&&dbp)o+=row('PAM',fmt((sbp+2*dbp)/3,0),'mmHg', ((sbp+2*dbp)/3)<65?pill('baja','bad'):pill('ok','ok'));
+  /* Ninguna presión diastólica supera a la sistólica: es un dato invertido al
+     teclear, no una fisiología rara. Antes la PAM salía tan tranquila. */
+  if(sbp&&dbp&&dbp>=sbp){
+    o+=row('PAM','—','', pill('la PAD no puede superar a la PAS — revisá','bad'));
+  }else if(sbp&&dbp){
+    o+=row('PAM',fmt((sbp+2*dbp)/3,0),'mmHg', ((sbp+2*dbp)/3)<65?pill('baja','bad'):pill('ok','ok'));
+  }
   if(hr&&sbp){const si=hr/sbp;o+=row('Shock index',fmt(si,2),'', si>=0.9?pill('alto riesgo','bad'):si>0.7?pill('elevado','warn'):pill('normal','ok'));}
   if(mg&&vol){const conc=(mg*1000)/vol; // µg/mL
     o+=row('Concentración NA',fmt(conc,0),'µg/mL');
