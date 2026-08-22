@@ -124,7 +124,8 @@ function num(id){
   if(fueraDeRango(id)) return null;
   return v;
 }
-function fmt(n,d=1){if(n===null||n===undefined||isNaN(n))return '—';return (Math.round(n*10**d)/10**d).toLocaleString('es-PE');}
+/* `isNaN` NO atrapa el infinito: una compliance con Pplat=PEEP salía «∞». */
+function fmt(n,d=1){if(n===null||n===undefined||isNaN(n)||!isFinite(n))return '—';return (Math.round(n*10**d)/10**d).toLocaleString('es-PE');}
 function pill(t,cls){return `<span class="pill ${cls}">${t}</span>`;}
 
 /* ---------- MÓDULOS ---------- */
@@ -283,8 +284,17 @@ function vVent(){
     if(vt)o+=row('Vt actual / PBW',fmt(vt/pbw),'mL/kg', (vt/pbw>8?pill('alto','bad'):vt/pbw>6.5?pill('límite','warn'):pill('protector','ok')));
   }
   if(pplat!==null&&peep!==null){const dp=pplat-peep;
-    o+=row('Driving pressure',fmt(dp),'cmH₂O',dp>15?pill('alto','bad'):pill('ok','ok'));
-    if(vt)o+=row('Compliance estática',fmt(vt/dp),'mL/cmH₂O');
+    /* Una driving pressure ≤0 es físicamente imposible con una pausa
+       inspiratoria válida: la Pmeseta siempre es ≥ PEEP total. Antes, con
+       Pplat 20 y PEEP 25 tecleados al revés, salía «−5 cmH₂O» con píldora
+       VERDE «ok» y compliance «−84»: falsa tranquilidad sobre una presión
+       que en realidad no se midió. */
+    if(dp<=0){
+      o+=row('Driving pressure','—','', pill('revisá Pmeseta y PEEP: la Pmeseta debe ser ≥ PEEP','bad'));
+    }else{
+      o+=row('Driving pressure',fmt(dp),'cmH₂O',dp>15?pill('alto','bad'):pill('ok','ok'));
+      if(vt)o+=row('Compliance estática',fmt(vt/dp),'mL/cmH₂O');
+    }
     if(vt&&fr&&ppeak!==null){const mp=0.098*fr*(vt/1000)*(ppeak-0.5*dp);
       o+=row('Mechanical power',fmt(mp),'J/min',mp>17?pill('alto','bad'):pill('ok','ok'));}
   }
@@ -369,16 +379,55 @@ function vNa(){
   const sv=el('n_sex').value, factor=sv==='0.5b'?0.5:parseFloat(sv);
   const fluid=parseFloat(el('n_fluid').value);
   let o='';
-  if(na&&glu!==null){const fg=glu>400?2.4:1.6;o+=row('Na⁺ corregido (glucosa)',fmt(na+fg*((glu-100)/100)),'mmol/L',glu>400?pill('factor 2,4 (Hillier)','warn'):'');}
+  /* Hillier 1999: 2,4 es el mejor promedio de TODO el rango, pero por encima
+     de 400 mg/dL el factor que ajusta es 4,0. Con glucosa 900 y Na 125, el
+     2,4 daba «144» (tranquilizador) y el 4,0 da 157 — hipernatremia franca
+     que aflora al bajar la glucosa con insulina. Se enseñan las DOS: el 4,0
+     sale de un estudio de sólo 6 sujetos sanos y esconder esa incertidumbre
+     sería tan malo como ignorar el dato. */
+  if(na&&glu!==null){
+    const exceso=(glu-100)/100;
+    if(glu>400){
+      o+=row('Na⁺ corregido (glucosa)',fmt(na+1.6*exceso)+' – '+fmt(na+4.0*exceso),'mmol/L',
+             pill('glucosa >400: entre el factor 1,6 y el 4,0 (Hillier) — usá el peor caso','warn'));
+    }else{
+      o+=row('Na⁺ corregido (glucosa)',fmt(na+1.6*exceso),'mmol/L', pill('factor 1,6','ok'));
+    }
+  }
   let act=null;
   if(kg){act=kg*factor; o+=row('Agua corporal total',fmt(act),'L');}
   if(act&&na){
     if(na>145)o+=row('Déficit de agua libre',fmt(act*(na/140-1)),'L');
     const kadd=num('n_kadd')||0;const dNa=(fluid+kadd-na)/(act+1);
     o+=row('ΔNa⁺ por 1 L (Adrogué)',fmt(dNa,2),'mmol/L', Math.abs(dNa)>0?'':'' );
-    if(goal&&Math.abs(dNa)>0.01){const need=(goal-na)/dNa; o+=row('Vol. para llegar al objetivo',fmt(need,2),'L');}
+    /* TOPE DE VELOCIDAD. Antes, con Na 110 y objetivo 140 imprimía «3,20 L»
+       sin avisar: son ~30 mmol/L de corrección, 3-4 veces el límite seguro.
+       La corrección rápida de la hiponatremia produce desmielinización
+       osmótica. Ahora el volumen que se muestra es el de las PRIMERAS 24 h,
+       topado a +8 mmol/L, y se dice que el resto va en días sucesivos.
+       Y si el fluido elegido ALEJA del objetivo, salían litros negativos
+       («−10,12 L» con NaCl 0,45%): eso ya no se imprime como un número. */
+    if(goal&&Math.abs(dNa)>0.01){
+      const subiendo = goal>na;
+      const goalSeguro = subiendo ? Math.min(goal, na+8) : Math.max(goal, na-8);
+      const need=(goalSeguro-na)/dNa;
+      if(need<0){
+        o+=row('Vol. para llegar al objetivo','—','', pill('este fluido mueve el Na al revés: elegí otro','bad'));
+      }else{
+        const topado = Math.abs(goal-na)>8;
+        o+=row('Volumen (primeras 24 h)',fmt(need,2),'L',
+               topado?pill('objetivo 24 h = '+fmt(goalSeguro,0)+' mmol/L · el resto en días sucesivos','bad')
+                     :pill('dentro de ≤8 mmol/L/24 h','ok'));
+      }
+    }
   }
-  if(act&&na&&goal&&na<135)o+=row('Déficit de Na⁺',fmt(act*(goal-na),0),'mmol');
+  /* El déficit total se sigue mostrando, pero diciendo que es el TOTAL y no
+     lo que toca reponer hoy: era la otra mitad del mismo error. */
+  if(act&&na&&goal&&na<135){
+    const seg=Math.min(goal, na+8);
+    o+=row('Déficit de Na⁺ (total)',fmt(act*(goal-na),0),'mmol',
+           (goal-na)>8?pill('en 24 h sólo hasta '+fmt(act*(seg-na),0)+' mmol','warn'):'');
+  }
   el('n_out').innerHTML=o||'<div class="r"><span class="k">Ingresa datos…</span></div>';
 }
 
