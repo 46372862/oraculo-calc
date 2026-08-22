@@ -447,7 +447,14 @@ function vRen(){
   const una=num('r_una'),ucr=num('r_ucr'),uur=num('r_uur'),pur=num('r_pur');
   let o='';
   if(age&&kg&&cr){let cg=((140-age)*kg)/(72*cr); if(sex==='m')cg*=0.85;
-    o+=row('Cockcroft-Gault (ClCr)',fmt(cg,0),'mL/min');}
+    /* Lleva el peso REAL: en obesidad sobreestima el aclaramiento y se
+       dosifica de más. Y ninguna de las dos fórmulas vale en lesión renal
+       AGUDA, porque suponen creatinina en equilibrio — en la UCI casi nunca
+       lo está. Un aclaramiento «normal» en plena LRA tranquiliza justo
+       cuando no hay que tranquilizarse. */
+    /* Sin IMC: este módulo no tiene la talla. El aviso vale igual. */
+    o+=row('Cockcroft-Gault (ClCr)',fmt(cg,0),'mL/min',
+           pill('peso real: en obesidad sobreestima · no vale en lesión renal aguda','warn'));}
   if(age&&cr){const k=sex==='m'?0.7:0.9, a=sex==='m'?-0.241:-0.302;
     let egfr=142*Math.pow(Math.min(cr/k,1),a)*Math.pow(Math.max(cr/k,1),-1.200)*Math.pow(0.9938,age);
     if(sex==='m')egfr*=1.012;
@@ -509,10 +516,24 @@ function vScores(){
 
 function vNut(){
   const ca=num('e_ca'),alb=num('e_alb');
-  el('e_out').innerHTML=(ca&&alb!==null)?row('Ca corregido',fmt(ca+0.8*(4-alb),2),'mg/dL'):'<div class="r"><span class="k">Ingresa datos…</span></div>';
+  /* La fórmula está bien, pero en el paciente crítico es POCO FIABLE: la
+     unión del calcio a la albúmina depende del pH y en shock, sepsis o tras
+     transfusión masiva se despega de la realidad. El único valor de confianza
+     es el calcio IÓNICO. Darlo a secas invita a tratar sobre un dato que en
+     ese contexto no vale. */
+  el('e_out').innerHTML=(ca&&alb!==null)?(row('Ca corregido',fmt(ca+0.8*(4-alb),2),'mg/dL',
+      pill('en el crítico pedí calcio IÓNICO: esta corrección es poco fiable','warn'))):'<div class="r"><span class="k">Ingresa datos…</span></div>';
   const kg=num('u_kg'),kc=parseFloat(el('u_kcal').value),pr=parseFloat(el('u_pro').value);
   let o='';
-  if(kg){o+=row('Energía',`${fmt(kg*kc,0)}`,'kcal/día');o+=row('Proteína',`${fmt(kg*pr,0)}`,'g/día');}
+  /* Multiplicar por el peso REAL sobrealimenta al obeso: las guías
+     (ASPEN/ESPEN) usan peso ajustado o ideal según el IMC. No se cambia el
+     cálculo —el peso lo elige él— pero sí se dice sobre cuál se hizo. */
+  if(kg){
+    o+=row('Energía',fmt(kg*kc,0),'kcal/día');
+    o+=row('Proteína',fmt(kg*pr,0),'g/día');
+    o+=row('Calculado sobre','el peso que introdujiste','',
+           pill('en obesidad usá peso ajustado o ideal, no el real','warn'));
+  }
   el('u_out').innerHTML=o||'<div class="r"><span class="k">Ingresa peso…</span></div>';
 }
 
