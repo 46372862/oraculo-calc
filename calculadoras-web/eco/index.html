@@ -194,6 +194,13 @@
   .inp-bad{border-color:#ff7085 !important;background:rgba(255,112,133,.14) !important;color:#ffd0d7 !important}
   #badbanner{display:none;margin:10px 0;background:rgba(255,112,133,.13);border:1px solid rgba(255,112,133,.5);border-radius:11px;padding:10px 12px;font-size:.82rem;color:#ffd0d7;line-height:1.5}
   #badbanner b{color:var(--sobre-tinte)}
+  /* «Datos restaurados»: aviso informativo en celeste (antes con estilos en línea que
+     se quedaban pegados y teñían después el aviso de error: celeste ilegible sobre claro) */
+  #badbanner.bb-info{background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.5);color:#bde9f5}
+  body.theme-light #badbanner{color:var(--bad)}
+  body.theme-light #badbanner.bb-info{color:var(--txt)}
+  body.theme-light #badbanner b{color:var(--txt)}
+  body.theme-guardia #badbanner{color:var(--txt)}
   /* 🖨️ Impresión legible: texto y valores en negro sobre blanco, badges con borde */
   @media print{
     body{background:#fff !important;color:#000 !important}
@@ -1979,7 +1986,7 @@ function calc(){
     const bb=document.getElementById('badbanner');
     if(bb){
       const L=window._BADFIELDS||[];
-      if(L.length){ bb.style.display='block';
+      if(L.length){ bb.classList.remove('bb-info'); bb.removeAttribute('style'); bb.style.display='block';
         bb.innerHTML='<b>⚠️ '+L.length+' valor'+(L.length>1?'es':'')+' fuera de rango — no se está'+(L.length>1?'n':'')+' usando en ningún cálculo:</b><br>· '+L.join('<br>· ');
       } else bb.style.display='none';
     }
@@ -2232,7 +2239,7 @@ function flashEl(el){ if(!el) return; el.classList.remove('numflash'); void el.o
   }catch(e){}
 })();
 try{ const _rest=Persist.load(); if(_rest){ const b=document.getElementById('badbanner');
-  if(b){ b.style.display='block'; b.style.background='rgba(34,211,238,.12)'; b.style.borderColor='rgba(34,211,238,.5)'; b.style.color='#bde9f5';
+  if(b){ b.classList.add('bb-info'); b.style.display='block';
     b.innerHTML='<b>💾 Datos restaurados</b> — se recuperaron '+_rest+' valores de tu último estudio (se guardan 12 h). Usa «↺ Limpiar todo» para empezar de cero.';
     setTimeout(function(){ try{ if(!(window._BADFIELDS||[]).length) b.style.display='none'; }catch(e){} }, 9000); } }
 }catch(e){}
