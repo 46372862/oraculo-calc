@@ -93,7 +93,7 @@
   .fld{display:flex;flex-direction:column;gap:4px}
   .mir-box{border:1px dashed rgba(34,211,238,.35);border-radius:12px;padding:8px 10px 10px;margin:6px 0 12px;background:rgba(34,211,238,.04)}
   .mir-h{font-size:.74rem;color:var(--dim);margin-bottom:6px}
-  .mir-tag{font-weight:400;font-size:.68rem;color:#67e8f9;white-space:nowrap}
+  .mir-tag{font-weight:400;font-size:.68rem;color:var(--cy);white-space:nowrap}
   .fld label{font-size:.8rem;color:var(--mut);font-weight:600}
   .fld .u{color:var(--dim);font-weight:400;font-size:.74rem}
   .fld .inrow{display:flex;align-items:center;gap:8px}
@@ -175,7 +175,7 @@
   .geom table{width:100%;border-collapse:collapse}
   .geom th,.geom td{padding:8px 7px;text-align:center;border:1px solid var(--bd)}
   .geom th{background:var(--sup);color:var(--mut);font-weight:700}
-  .geom td.on{background:linear-gradient(120deg,rgba(167,139,250,.28),rgba(244,114,182,.20));color:#fff;font-weight:800;box-shadow:inset 0 0 0 1px var(--pk)}
+  .geom td.on{background:linear-gradient(120deg,rgba(167,139,250,.28),rgba(244,114,182,.20));color:var(--sobre-tinte);font-weight:800;box-shadow:inset 0 0 0 1px var(--pk)}
   details.acc{margin:14px 0}
   details.acc>summary{list-style:none;cursor:pointer;background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid var(--bd);
         border-radius:14px;padding:13px 15px;font-size:1rem;font-weight:700;display:flex;align-items:center;gap:8px}
@@ -218,9 +218,76 @@
   .btn{min-height:44px}
   .pill .pl{font-size:.72rem}
 }
+  /* 🌓 Temas propios de la calculadora (mismos colores que tema_web.py del Oráculo),
+     para que el celular —que la abre SIN el Oráculo— también pueda verse en claro. */
+body.theme-light{
+  --bg:#eef2f9;--bg2:#e6ecf7;--card:#ffffff;--card2:#f4f7fd;
+  --bd:#d3dbe9;--txt:#172033;--mut:#4a5570;--dim:#5b6579;
+  --cy:#0e7490;--pu:#6d28d9;--pk:#a21caf;
+  --ok:#047857;--warn:#92400e;--bad:#b91c1c;--info:#1d4ed8;
+  --lienzo:linear-gradient(180deg,#eef2f9,#e8eef8 40%,#eef2f9);
+  --sup:#f1f5fb; --card-shock:linear-gradient(180deg,#fff5f5,#ffeceb);
+  --card-synth:linear-gradient(180deg,#f8f4ff,#f3ecff);
+  --sobre-tinte:#1a1420; --sobre-acento:#ffffff;
+  --barra:rgba(255,255,255,.94); --lg-in-tx:#0b4a5e; --lg-out-tx:#4c2a8f; --indigo:#4338ca;
+}
+body.theme-light.theme-papel{
+  --bg:#f6f1e7;--bg2:#efe8db;--card:#fffdf8;--card2:#f7f2e9;
+  --bd:#e0d6c4;--txt:#241f18;--mut:#5b5245;--dim:#6f6454;
+  --cy:#0e6f78;--pu:#6b2fae;--pk:#a21caf;
+  --ok:#0f6b46;--warn:#7a3105;--bad:#a51f1f;--info:#1a4a9e;
+  --lienzo:linear-gradient(180deg,#f6f1e7,#f1eade 40%,#f6f1e7);
+  --sup:#f4efe3; --card-shock:linear-gradient(180deg,#fdf1ec,#fbe9e2);
+  --card-synth:linear-gradient(180deg,#f7f1fb,#f2e9f8);
+  --sobre-tinte:#241f18; --sobre-acento:#ffffff;
+  --barra:rgba(255,253,248,.95); --lg-in-tx:#0b4a52; --lg-out-tx:#4c2a8f; --indigo:#4338ca;
+}
+body.theme-guardia{
+  --bg:#120e08;--bg2:#1a140c;--card:#1e1710;--card2:#261d12;
+  --bd:#3d3020;--txt:#f2e6d4;--mut:#c0ab8d;--dim:#a59376;
+  --cy:#f0a63c;--pu:#e8c06a;--pk:#d98d4e;
+  --ok:#9fc27a;--warn:#e8b855;--bad:#e08a6a;--info:#d9b06a;
+  --lienzo:linear-gradient(180deg,#120e08,#0f0b06 40%,#120e08);
+  --sup:#241c11; --card-shock:linear-gradient(180deg,#2a1a14,#2d1c15);
+  --card-synth:linear-gradient(180deg,#261e13,#2a2116);
+  --sobre-tinte:#f2e6d4; --sobre-acento:#120e08;
+  --barra:rgba(24,18,10,.95); --lg-in-tx:#f0c88a; --lg-out-tx:#e8cfa0; --indigo:#e8c06a;
+}
 </style>
 </head>
 <body>
+<script>/* 🌓 TEMA — botón «Tema» de la cabecera. Auto = en la laptop manda el tema del
+   Oráculo; en el celular (sin Oráculo) sigue el modo claro/oscuro del iPhone.
+   Va lo primero dentro de <body> para que no parpadee en oscuro al abrir. */
+var Tema=(function(){
+ var K='eco_theme', ORD=['auto','dark','light','papel','guardia'];
+ var M={dark:[],light:['theme-light'],guardia:['theme-guardia'],papel:['theme-light','theme-papel']};
+ var NOM={auto:'🌓 Tema: Auto',dark:'🌙 Tema: Oscuro',light:'☀️ Tema: Claro',papel:'📜 Tema: Papel',guardia:'🔥 Tema: Guardia'};
+ var mq=null; try{ mq=window.matchMedia('(prefers-color-scheme: light)'); }catch(e){}
+ function ls(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+ function lee(){ var t=ls(K); return M[t]||t==='auto'?(t||'auto'):'auto'; }
+ function pon(){
+  var b=document.body; if(!b) return; var t=lee(), cls=[];
+  if(t!=='auto') cls=M[t];
+  else { var o=ls('oraculo_theme');
+    if(o) { cls=(M[o]||[]).slice(); var ac=ls('oraculo_accent'); if(ac) cls.push(ac); }   // laptop: el del Oráculo
+    else if(mq&&mq.matches) cls=['theme-light']; }                                        // celular: el del iPhone
+  var cl=b.className.split(/\s+/).filter(function(c){ return c && !/^(theme-|acc-)/.test(c); });
+  b.className=cl.concat(cls).join(' ');
+  try{ var m=document.querySelector('meta[name=theme-color]');
+    if(m) m.content=getComputedStyle(b).getPropertyValue('--bg').trim()||'#070b16'; }catch(e){}
+  var bt=document.getElementById('tema_btn'); if(bt) bt.textContent=NOM[t];
+ }
+ function sig(){ var t=lee(), n=ORD[(ORD.indexOf(t)+1)%ORD.length];
+  try{ if(n==='auto') localStorage.removeItem(K); else localStorage.setItem(K,n); }catch(e){}
+  pon(); }
+ pon();
+ document.addEventListener('DOMContentLoaded',pon);
+ window.addEventListener('storage',function(e){ if(!e.key||/^(eco_theme|oraculo_theme|oraculo_accent)$/.test(e.key)) pon(); });
+ try{ mq.addEventListener('change',pon); }catch(e){ try{ mq.addListener(pon); }catch(e2){} }
+ return {sig:sig, pon:pon};
+})();</script>
+
 <div class="wrap">
 
 <header>
@@ -231,6 +298,7 @@
     <button class="btn" onclick="genReport()" style="border-color:var(--cy);color:var(--cy)">📋 Generar informe</button>
     <button class="btn" onclick="reset0()">↺ Limpiar todo</button>
     <button class="btn" onclick="window.print()">🖨️ Imprimir / PDF</button>
+    <button class="btn" id="tema_btn" onclick="Tema.sig()" title="Toca para cambiar: Auto → Oscuro → Claro → Papel → Guardia">🌓 Tema: Auto</button>
   </div>
   <div id="badbanner"></div>
   <div class="legend">
