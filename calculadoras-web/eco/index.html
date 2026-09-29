@@ -91,6 +91,9 @@
   @media(min-width:560px){ .grid.two{grid-template-columns:1fr 1fr} .grid.three{grid-template-columns:1fr 1fr 1fr} }
 
   .fld{display:flex;flex-direction:column;gap:4px}
+  .mir-box{border:1px dashed rgba(34,211,238,.35);border-radius:12px;padding:8px 10px 10px;margin:6px 0 12px;background:rgba(34,211,238,.04)}
+  .mir-h{font-size:.74rem;color:var(--dim);margin-bottom:6px}
+  .mir-tag{font-weight:400;font-size:.68rem;color:#67e8f9;white-space:nowrap}
   .fld label{font-size:.8rem;color:var(--mut);font-weight:600}
   .fld .u{color:var(--dim);font-weight:400;font-size:.74rem}
   .fld .inrow{display:flex;align-items:center;gap:8px}
@@ -453,7 +456,7 @@
 <!-- ===================== VÁLVULA AÓRTICA (CONTINUIDAD) Y SHUNT ===================== -->
 <div class="card ao">
   <h2>🫀 Válvula aórtica (continuidad) y shunt Qp/Qs</h2>
-  <p class="sub">Usa el <b>Diámetro TSVI, LVOT-VTI, VTI del TSVD y BSA</b> de arriba. AVA por ecuación de continuidad; gradiente por Bernoulli; Qp/Qs por flujos.</p>
+  <p class="sub">Necesita el <b>Diámetro TSVI, LVOT-VTI, VTI del TSVD y talla/peso</b> — puedes escribirlos aquí mismo (🔗) y se copian a su módulo. AVA por ecuación de continuidad; gradiente por Bernoulli; Qp/Qs por flujos.</p>
   <div class="grid three">
     <div class="fld"><label>Vmáx aórtica (jet AV) <span class="u">(m/s)</span></label><input id="av_vmax" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
     <div class="fld"><label>VTI aórtica (jet AV) <span class="u">(cm)</span></label><input id="av_vti" type="text" inputmode="decimal" placeholder="—" oninput="calc()"></div>
@@ -2048,7 +2051,7 @@ function genReport(){
 
     /* medidas introducidas */
     const ms=[];
-    card.querySelectorAll('.fld').forEach(function(fld){
+    card.querySelectorAll('.fld:not(.mir-fld)').forEach(function(fld){   /* los espejos 🔗 no se repiten en el informe */
       const inp=fld.querySelector('input,select'); if(!inp) return;
       if(inp.type==='checkbox') { if(inp.checked){ const l=fld.querySelector('label'); ms.push(lim(inp.parentElement.textContent)); } return; }
       let v;
@@ -2389,6 +2392,78 @@ QN._mini=function(){
 try{ QN.init(); }catch(e){}
 /* los resultados en vivo de cada ventana se refrescan con cada cálculo */
 (function(){ const _c=window.calc; window.calc=function(){ _c.apply(this,arguments); try{ if(typeof ACQ!=='undefined' && ACQ.on) ACQ.refresh(); }catch(e){} }; })();
+/* ============================================================================
+   🔗 MIR — DATOS COMPARTIDOS EN CADA MÓDULO
+   Cada módulo muestra, arriba, los campos que necesita y que viven en OTRO módulo
+   (TSVI, LVOT-VTI, talla, peso, PAD…). Son ESPEJOS: no tienen id propio, escriben
+   en el campo original y todos los espejos del mismo dato se actualizan solos.
+   Un solo valor real por dato → el cálculo, el autoguardado y el informe no cambian.
+   ========================================================================== */
+const MIR = {
+  /* clave del título del módulo (como en QN) → ids de los campos que usa de fuera */
+  NEED: {
+    'perfil de shock':       ['pam','fc','lvot_d','lvot_vti','talla','peso','pad_man','ee_lat'],
+    'gasto cardiaco':        ['talla','peso','pad_man','vtr'],
+    'valvula aortica':       ['lvot_d','lvot_vti','rvot_vti','talla','peso'],
+    'masa':                  ['sexo','talla','peso'],
+    'funcion sistolica':     ['sexo','talla','peso'],
+    'ventriculo derecho':    ['tapse','sexo','talla','peso'],
+    'vd agudo':              ['tap','vtr','rv_d','lv_bd','pad_man'],
+    'vpp':                   ['tapse','vtr'],
+    'funcion diastolica':    ['vtr','talla','peso'],
+    'volumen gastrico':      ['edad','peso']
+  },
+  list: [],
+  _mod(src){ const c=src.closest('.card'); if(!c) return '';
+    const h=c.querySelector('h2') || (c.parentElement&&c.parentElement.tagName==='DETAILS'?c.parentElement.querySelector('summary'):null);
+    return h? h.textContent.replace(/^[^\wÁÉÍÓÚÑáéíóúñ«]+/,'').split('—')[0].trim() : ''; },
+  build(){
+    const self=this;
+    document.querySelectorAll('.card:not(.acq-card)').forEach(function(card){
+      const det=(card.parentElement&&card.parentElement.tagName==='DETAILS')?card.parentElement:null;
+      const h=card.querySelector('h2') || (det?det.querySelector('summary'):null); if(!h) return;
+      const t=QN._n(h.textContent);
+      let ids=null; for(const k in self.NEED){ if(t.indexOf(k)>=0){ ids=self.NEED[k]; break; } }
+      if(!ids) return;
+      const grid=document.createElement('div'); grid.className='grid three';
+      ids.forEach(function(id){
+        const src=document.getElementById(id); if(!src || card.contains(src)) return;   // si ya vive aquí, no se duplica
+        const sfld=src.closest('.fld'); const slab=sfld?sfld.querySelector('label'):null;
+        const fld=document.createElement('div'); fld.className='fld mir-fld';
+        const lab=document.createElement('label');
+        lab.innerHTML=(slab?slab.innerHTML:id)+' <span class="mir-tag">🔗 '+self._mod(src)+'</span>';
+        let m;
+        if(src.tagName==='SELECT'){ m=src.cloneNode(true); m.removeAttribute('id'); m.removeAttribute('oninput'); m.removeAttribute('onchange'); }
+        else { m=document.createElement('input'); m.type='text'; m.setAttribute('inputmode','decimal'); m.placeholder=src.placeholder||'—'; }
+        m.className='mir-inp'; m.dataset.src=id;
+        const push=function(){ src.value=m.value;
+          src.dispatchEvent(new Event('input',{bubbles:true}));      // corre el manejador original (p. ej. PAD fijada a mano)
+          if(src.tagName==='SELECT') src.dispatchEvent(new Event('change',{bubbles:true})); };
+        m.addEventListener('input', push); if(m.tagName==='SELECT') m.addEventListener('change', push);
+        fld.appendChild(lab); fld.appendChild(m); grid.appendChild(fld);
+        self.list.push({m:m, src:src});
+      });
+      if(!grid.children.length) return;
+      const box=document.createElement('div'); box.className='mir-box';
+      box.innerHTML='<div class="mir-h">🔗 Datos que usa este módulo y que se miden en otro — escribe aquí o allá, se sincronizan solos</div>';
+      box.appendChild(grid);
+      const sub=card.querySelector(':scope > p.sub');
+      if(sub) sub.after(box); else if(card.querySelector('h2')) card.querySelector('h2').after(box); else card.prepend(box);
+    });
+  },
+  /* original → espejos (sin tocar el que se está escribiendo) + marca de error del original */
+  pull(){
+    const act=document.activeElement;
+    this.list.forEach(function(o){
+      if(o.m!==act && o.m.value!==o.src.value) o.m.value=o.src.value;
+      o.m.classList.toggle('inp-bad', o.src.classList.contains('inp-bad'));
+      o.m.classList.toggle('u-conv', o.src.classList.contains('u-conv'));
+      if(o.src.title) o.m.title=o.src.title; else o.m.removeAttribute('title');
+    });
+  }
+};
+try{ MIR.build(); }catch(e){}
+(function(){ const _c=window.calc; window.calc=function(){ _c.apply(this,arguments); try{ MIR.pull(); }catch(e){} }; })();
 calc();
 </script>
 
